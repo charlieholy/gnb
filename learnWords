@@ -1,0 +1,41 @@
+tickler/cpp_testsuites/l2ps
+参考深入理解LTE
+url http://blog.sina.com.cn/s/blog_74797cc90102viw4.html symbol
+cell小区
+PLMN ID. Public Land Mobile Network Identifier
+下行
+名词解释pss/sss  每隔5ms发送一次同步信号
+mib(PBCH)  小区的系统信息  MasterInformationBlock
+sib(PDCSH)   Physical Downlink Shared Channel   sib(System Information Block)
+PDCCH     Physical Downlink Control Channel 
+CSI  Channel Status Information
+Paging procedure in 5G  寻呼
+epc 核心网
+ra preamble(PRACH)
+srs 探测参考信号（sounding reference signal）
+sr请求scheduling request
+bsr (buffer status report)  UE告诉eNodeB 自己有多少数据需要发送
+PHICH  (Physical Hybrid ARQ Indicator Channel) 用于回ack与重传
+PUCCH (Physical Uplink Control Channel)
+PUICH  (Physical Uplink Shared Channel)
+tti (transmission time interval)
+DRB data radio bearer (DRB)
+RAB  radio access 
+RRC Radio Resource Control (RRC)
+SRB (signaling radio bearer)
+RE (resource element)
+REG (re  group) =  4 RE
+CCE(Control Channel Element)  = 9 REG
+RB(Resource Block) 7 * 12 = 84RE
+下行使用OFDM (orthogonal frequency division multoplexing)
+上行使用SC-FDMA(single-Carrier Frequency Division Multiple Access)
+system frame 系统帧 无线帧
+one radio frame 时间单位Tf=307200Ts = 10ms
+One slot , Tslot = 15360Ts = 0.5ms
+ 
+crs cell-specific reference signal 小区特定的参考信号s
+PBCH   physical broadcast channel
+PMCH  physical multi channel
+CFI control format indicator (CFI)
+DCI (Downlink Control Information)
+ 
