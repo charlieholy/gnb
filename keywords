@@ -4,3 +4,6 @@ FDMA Frequnecy Division Multiple Access 分频
 TDMA Time  Division Multiple Access 分时
 CDMA Code Division Multiple Access 编码
 OFDMA Orthogonal frequency Division Multiple Access （正交 FDMA）更高的频谱效率
+
+PSS primary synchronization signal 主同步信號
+SSS secondary synchronizatio signal
