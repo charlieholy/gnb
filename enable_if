@@ -1,0 +1,12 @@
+//xtr1common文件
+	// TEMPLATE CLASS enable_if
+template<bool _Test, class _Ty = void>//第一个模板参数类型bool,这是一种技术
+	struct enable_if
+	{	// type is undefined for assumed !_Test
+	};
+ 
+template<class _Ty>
+	struct enable_if<true, _Ty>//这里用到了偏特化，模板实例化时只有第一个模板那参数是true的才会使用此偏特化版本，此时才有typedef _Ty type
+	{	// type is _Ty for _Test
+	typedef _Ty type;
+	};
