@@ -26,3 +26,5 @@ PUCCH  ( Physical Downlink Control Channel) 包含：
  HARQ
  CSI  channel state information  包含：CQI  PMI RI
  
+DCI 包含：
+ MCS  Modulation and coding scheme  确定调制阶数(Q_{m})、目标码率(R)；
