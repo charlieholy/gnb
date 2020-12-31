@@ -6,7 +6,7 @@ PLMN ID. Public Land Mobile Network Identifier
 下行
 名词解释pss/sss  每隔5ms发送一次同步信号
 mib(PBCH)  小区的系统信息  MasterInformationBlock
-sib(PDCSH)   Physical Downlink Shared Channel   sib(System Information Block)
+sib(PDSCH)   Physical Downlink Shared Channel   sib(System Information Block)
 PDCCH     Physical Downlink Control Channel 
 CSI  Channel Status Information
 Paging procedure in 5G  寻呼
