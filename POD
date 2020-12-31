@@ -1,0 +1,49 @@
+　POD意指Plain Old Data，也就是标量型别（scalar types)或传统的C struct型别。
+ POD型别必然拥有trivial ctor/dctor/copy/assignment operator函数。（这里的trivial 函数意思是该函数无光痛痒，不重要，即平凡函数）
+ 
+ 平凡的定义
+平凡的结构体
+　　对于一个类或结构体来讲，平凡的定义是：
+
+平凡的构造/拷贝构造/移动构造函数
+平凡的拷贝复制/移动复制运算符
+平凡的析构函数
+不包含虚函数、虚基类
+
+#include<iostream>
+using namespace std;
+
+class A { A() {} };                        //自定义构造函数
+class B { B(B&) {} };                    //自定义拷贝构造函数
+class C { C(C&&) {} };                    //自定义移动构造函数    
+class D { D operator=(D&) {} };            //自定义拷贝赋值运算符    
+class E { E operator=(E&&) {} };        //自定义移动复制运算符
+class F { ~F() {} };                    //自定义析构函数
+class G { virtual void foo() = 0; };    //含有虚函数
+class H : G {};                            //继承自纯虚类
+class I {};
+
+int main()
+{
+    std::cout << "有不平凡的构造函数" << ends << std::is_trivial<A>::value << std::endl;        
+    std::cout << "有不平凡的拷贝构造函数" << ends << std::is_trivial<B>::value << std::endl;
+    std::cout << "有不平凡的移动构造函数" << ends << std::is_trivial<C>::value << std::endl;
+    std::cout << "有不平凡的拷贝赋值运算符" << ends << std::is_trivial<D>::value << std::endl;
+    std::cout << "有不平凡的移动赋值运算符" << ends << std::is_trivial<E>::value << std::endl;
+    std::cout << "有不平凡的析构函数" << ends << std::is_trivial<F>::value << std::endl;        
+    std::cout << "有虚函数" << ends << std::is_trivial<G>::value << std::endl;        
+    std::cout << "有虚基类" << ends << std::is_trivial<H>::value << std::endl;            
+    std::cout << "平凡的类" << ends << std::is_trivial<I>::value << std::endl;            
+
+    system("pause");
+    return 0;
+
+}
+
+POD型别的作用
+　　为什么C++需要引进POD这一个概念？我结合自己的理解和网上的资料总结出以下几点：
+
+POD型别是兼容传统的C struct的，在需要与C语言交接的地方起作用
+提升效率。《STL源码剖析》中讲到，如果一个数组的成员是POD型别的数据，那么在对该数组进行拷贝操作的时候，可以直接调用更为底层的函数进行操作，而不需要对每一个成员使用复制赋值构造函数
+一个POD型别的类或结构体通过二进制拷贝后还能保持其数据不变
+
