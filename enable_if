@@ -10,3 +10,25 @@ template<class _Ty>
 	{	// type is _Ty for _Test
 	typedef _Ty type;
 	};
+
+
+demo:
+template <typename T>//std::is_trivial<T>::value为true会使用这个函数
+typename std::enable_if<std::is_trivial<T>::value>::type SFINAE_test(T value)
+{
+    std::cout<<"T is trival"<<std::endl;
+}
+ 
+template <typename T>//std::is_trivial<T>::value为false会使用这个函数
+typename std::enable_if<!std::is_trivial<T>::value>::type SFINAE_test(T value)
+{
+    std::cout<<"T is none trival"<<std::endl;
+}
+
+
+SFINAE_test(std::string("123"));
+SFINAE_test(123);
+
+out:
+T is none trival
+T is trival
