@@ -11,3 +11,6 @@ SSS secondary synchronizatio signal
 VBR virtual resource block
 PBV physical resource block
 PDSCH ( Physical Downlink Control Channel) PCSCH ( Physical Downlink Shared Channel) 的資源都是以vrb對為單位進行分配 然後隱射到PRB上
+
+SR scheduling request 上行調度請求
+ 
