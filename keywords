@@ -10,7 +10,7 @@ SSS secondary synchronizatio signal
 
 VBR virtual resource block
 PBV physical resource block
-PDSCH ( Physical Downlink Control Channel) PCSCH ( Physical Downlink Shared Channel) 的資源都是以vrb對為單位進行分配 然後隱射到PRB上
+PDCCH ( Physical Downlink Control Channel)  PCSCH ( Physical Downlink Shared Channel) 的資源都是以vrb對為單位進行分配 然後隱射到PRB上
 
 SR scheduling request 上行調度請求
 
@@ -19,4 +19,10 @@ SCG：Secondary Cell group，辅小区组
 PCell：Primary Cell，主小区
 SCell：Secondary Cell，辅小区
 PSCell：Primary Secondary Cell，主辅小区
+
+PUCCH  ( Physical Downlink Control Channel) 包含：
+ UCI uplink  control information
+ SR
+ HARQ
+ CSI  channel state information  包含：CQI  PMI RI
  
