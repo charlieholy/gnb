@@ -7,3 +7,7 @@ OFDMA Orthogonal frequency Division Multiple Access （正交 FDMA）更高的�
 
 PSS primary synchronization signal 主同步信號
 SSS secondary synchronizatio signal
+
+VBR virtual resource block
+PBV physical resource block
+PDSCH  PCSCH 的資源都是以vrb對為單位進行分配 然後隱射到PRB上
