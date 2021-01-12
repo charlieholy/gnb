@@ -1,0 +1,6 @@
+  #uclude <stdio.h>
+  const char* filename = "asdasdasd";
+  const int lineNumber = 123;
+  char buf[4096] = {0};
+  sprintf(buf,"%s:%d",filename,lineNumber);
+  cout << string(buf) << endl;
