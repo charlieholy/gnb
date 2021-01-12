@@ -1,0 +1,19 @@
+warning: Cannot parse .gnu_debugdata section; LZMA support was disabled at compile time
+show configuration
+This GDB was configured as follows:
+   configure --host=x86_64-pc-linux-gnu --target=x86_64-pc-linux-gnu
+             --with-auto-load-dir=$debugdir:$datadir/auto-load
+             --with-auto-load-safe-path=$debugdir:$datadir/auto-load
+             --with-expat
+             --with-gdb-datadir=/opt/gdb/share/gdb (relocatable)
+             --with-jit-reader-dir=/opt/gdb/lib/gdb (relocatable)
+             --without-libunwind-ia64
+             --without-lzma
+             --without-babeltrace
+                             --without-intel-pt
+             --without-mpfr
+             --without-xxhash
+             --with-python=/usr
+             --without-guile
+             --disable-source-highlight
+             --with-separate-debug-dir=/opt/gdb/lib/debug (relocatable)
