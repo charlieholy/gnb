@@ -1,2 +1,2 @@
-strace -ff -o setstrace sh set_gnb_env.sh
+strace -s 1024 -ff -o setstrace sh set_gnb_env.sh
 grep -R open .  | grep -v .so | more
