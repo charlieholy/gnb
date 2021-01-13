@@ -2,3 +2,4 @@ strace -s 1024 -ff -o setstrace sh set_gnb_env.sh
 grep -R open .  | grep -v .so | more
 
 grep -R execv . | grep -vE "/usr/bin/dirname|/usr/bin/rm" | wc -l  //E 啓用正則
+cut -c 20-40 res.txt |  sort | uniq
