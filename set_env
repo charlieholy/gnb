@@ -1,2 +1,4 @@
 strace -s 1024 -ff -o setstrace sh set_gnb_env.sh
 grep -R open .  | grep -v .so | more
+
+grep -R execv . | grep -v "/usr/bin/dirname|/usr/bin/rm" | wc -l
