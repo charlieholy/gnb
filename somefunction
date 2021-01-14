@@ -1,0 +1,77 @@
+#include <iostream>
+ 
+template<typename T>
+class some_function {};
+//部分特化 20190828
+template<typename R,typename A, typename A2>
+class some_function<R(A,A2)> {
+};
+ 
+//部分特化 20190828
+template<typename R,typename A>
+class some_function<R(A)> {
+public:
+    template<typename F>
+    some_function(F f);
+    template<typename F>
+    some_function & operator=(F f) {
+        CallBase *tmp = _f;
+        _f = new Call<F>(f);
+        delete tmp;
+        return *this;   
+    }
+ 
+    ~some_function();
+ 
+    R operator()(A a) {
+        return _f->invoke(a);
+    }
+private:
+    //定义常规基类为了可以定义成员变量CallBase *_f，否则实例化模板类Call *_f没法实现 20190828
+    class CallBase {
+    public:
+        virtual ~CallBase() {}
+        virtual R invoke(A) = 0;
+    };
+    template<typename T1>
+    class Call : public CallBase {
+    public:
+        Call(const T1 &t) : _t(t) {}
+        R invoke(A a) {
+            return _t(a);
+        }
+    private:
+        T1 _t;
+    };
+    //R (*_f)(A);
+    //这里可用只能指针替代，这样就不用析构函数delete了
+    CallBase *_f;
+};
+ 
+template<typename R, typename A>
+template<typename F>
+some_function<R(A)>::some_function(F f) :_f(new Call<F>(f)){
+}
+template<typename R, typename A>
+some_function<R(A)>::~some_function() {
+    if (_f)
+        delete _f;
+}
+ 
+void fun(int) {
+    std::cout << "::fun(int)" << std::endl;
+}
+ 
+struct funtor {
+    void operator()(int) {
+        std::cout << "funtor::operator()" << std::endl;
+    }
+};
+ 
+int main() {
+ 
+    some_function<void(int)> f(fun);
+    f(1);
+    f = funtor();
+    f(2);
+}
