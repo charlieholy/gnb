@@ -1,0 +1,17 @@
+cat /etc/redhat-release
+Red Hat Enterprise Linux Server release 7.8 (Maipo)
+
+設置密碼
+vncpasswd
+啓動服務
+vncserver
+
+ps -ef | grep vnc
+/usr/bin/Xvnc :3 -auth /home/pechen/.Xauthority -desktop zhong-yan-b3dev-rhel7.5-44-1-2020.novalocal:3 (pechen) -fp catalogue:/etc/X11/fontpath.d -geometry 1024x768 -pn -rfbauth /home/pechen/ vnc/passwd -rfbport 5903 -rfbwait 30000
+查看端口號
+
+打開vnc viewer
+ip:port
+輸入之前設置的密碼
+
+ok
