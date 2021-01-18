@@ -15,3 +15,6 @@ ip:port
 輸入之前設置的密碼
 
 ok
+
+修改屏幕分辨率
+ vncserver -geometry 1920x1080
