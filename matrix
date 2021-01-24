@@ -35,11 +35,13 @@ using namespace std;
 //  [-3. +4.j -4. +7.j -5.+10.j -6.+13.j -4. +7.j -5.+12.j -6.+17.j -7.+22.j
 //   -5.+10.j -6.+17.j -7.+24.j -8.+31.j]]
 
-
-using Elem = complex<double>;
+template <typename T>
+using is_arith = typename std::enable_if<is_arithmetic<T>::value>::type;
+template <typename T = double, typename = is_arith<T>>
+using Elem = complex<T>;
 
 template <size_t M = 0 /*row*/, size_t N = 0 /*col*/>
-using Matrix = array<array<Elem, N>, M>;
+using Matrix = array<array<Elem<>, N>, M>;
 
 template <size_t M, size_t N, size_t L>
 Matrix<M, L> dot(Matrix<M, N> m1, Matrix<N, L> m2)
@@ -70,7 +72,7 @@ Matrix<M * M1, N * N1> kron(Matrix<M, N> m1, Matrix<M1, N1> m2)
             {
                 for (int l = 0; l < N1; l++)
                 {
-                    m3[i*M1+k][j*N1+l] = m1[i][j]*m2[k][l];
+                    m3[i * M1 + k][j * N1 + l] = m1[i][j] * m2[k][l];
                 }
             }
         }
@@ -94,25 +96,18 @@ void MatrixDump(T m)
 
 int main()
 {
-    Matrix<2, 3> m1 = {{
-        {{{1, 2}, {2, 3}, {3, 4}}},
-        {{{1, 2}, {2, 3}, {3, 4}}}
-    }};
+    Matrix<2, 3> m1 = {{{{{1, 2}, {2, 3}, {3, 4}}}, {{{1, 2}, {2, 3}, {3, 4}}}}};
 
-    Matrix<3, 4> m2 = {{
-        {{{1, 2}, {2, 3}, {3, 4}, {4, 5}}}, 
-        {{{1, 2}, {2, 3}, {3, 4}, {4, 5}}}, 
-        {{{1, 2}, {2, 3}, {3, 4}, {4, 5}}}
-    }};
+    Matrix<3, 4> m2 = {
+        {{{{1, 2}, {2, 3}, {3, 4}, {4, 5}}}, {{{1, 2}, {2, 3}, {3, 4}, {4, 5}}}, {{{1, 2}, {2, 3}, {3, 4}, {4, 5}}}}};
 
-    Matrix<2, 4> m3 = dot<2, 3, 4>(m1, m2);
-    Matrix<6, 12> m4 = kron<2, 3, 3,4>(m1, m2);
-    
+    auto m3 = dot<2, 3, 4>(m1, m2);
+    auto m4 = kron<2, 3, 3, 4>(m1, m2);
+
     MatrixDump(m1);
     MatrixDump(m2);
     MatrixDump(m3);
     MatrixDump(m4);
-
 
     return 0;
 }
