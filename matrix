@@ -55,8 +55,8 @@ void isRightValue(T& v)
 }
 
 
-template <size_t M, size_t N, size_t L>
-Matrix<M, L>&& dot(const Matrix<M, N>& m1,const Matrix<N, L>& m2)
+template <size_t M, size_t N, size_t L> inline
+constexpr Matrix<M, L>&& dot(const Matrix<M, N>& m1,const Matrix<N, L>& m2)
 {
     //cout << typeid(m1).name() << endl;
     isRightValue(m1);
@@ -74,8 +74,8 @@ Matrix<M, L>&& dot(const Matrix<M, N>& m1,const Matrix<N, L>& m2)
     return std::move(m);
 }
 
-template <size_t M, size_t N, size_t M1, size_t N1>
-Matrix<M * M1, N * N1>&& kron(const Matrix<M, N>& m1,const Matrix<M1, N1>& m2)
+template <size_t M, size_t N, size_t M1, size_t N1> inline
+constexpr Matrix<M * M1, N * N1>&& kron(const Matrix<M, N>& m1,const Matrix<M1, N1>& m2)
 {
     
     Matrix<M * M1, N * N1> m3;
