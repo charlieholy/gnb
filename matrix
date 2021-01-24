@@ -34,6 +34,25 @@ using namespace std;
 //   -5.+10.j -6.+17.j -7.+24.j -8.+31.j]
 //  [-3. +4.j -4. +7.j -5.+10.j -6.+13.j -4. +7.j -5.+12.j -6.+17.j -7.+22.j
 //   -5.+10.j -6.+17.j -7.+24.j -8.+31.j]]
+#include <chrono>
+using namespace chrono;
+class Tm{
+public:
+  Tm(){ 
+     start = chrono::system_clock::now();
+  }
+
+  virtual ~Tm()
+  {
+	auto end   = system_clock::now();
+  	auto duration = duration_cast<microseconds>(end - start);
+	cout <<  "cost "
+     << double(duration.count()) * microseconds::period::num * 1000 / microseconds::period::den 
+     << "ms " << endl;
+  }
+private:
+  std::chrono::system_clock::time_point start;
+};
 
 template <typename T>
 using is_arith = typename std::enable_if<is_arithmetic<T>::value>::type;
@@ -56,7 +75,7 @@ void isRightValue(T& v)
 
 
 template <size_t M, size_t N, size_t L> inline
-constexpr Matrix<M, L>&& dot(const Matrix<M, N>& m1,const Matrix<N, L>& m2)
+Matrix<M, L>&& dot(const Matrix<M, N>& m1,const Matrix<N, L>& m2)
 {
     //cout << typeid(m1).name() << endl;
     isRightValue(m1);
@@ -75,7 +94,7 @@ constexpr Matrix<M, L>&& dot(const Matrix<M, N>& m1,const Matrix<N, L>& m2)
 }
 
 template <size_t M, size_t N, size_t M1, size_t N1> inline
-constexpr Matrix<M * M1, N * N1>&& kron(const Matrix<M, N>& m1,const Matrix<M1, N1>& m2)
+Matrix<M * M1, N * N1>&& kron(const Matrix<M, N>& m1,const Matrix<M1, N1>& m2)
 {
     
     Matrix<M * M1, N * N1> m3;
@@ -109,20 +128,35 @@ void MatrixDump(const T& m)
     }
 }
 
-int main()
-{
-    Matrix<2, 3> m1 = {{{{{1, 2}, {2, 3}, {3, 4}}}, {{{1, 2}, {2, 3}, {3, 4}}}}};
-
-    Matrix<3, 4> m2 = {
+Matrix<2, 3> m1 = {{{{{1, 2}, {2, 3}, {3, 4}}}, {{{1, 2}, {2, 3}, {3, 4}}}}};
+Matrix<3, 4> m2 = {
         {{{{1, 2}, {2, 3}, {3, 4}, {4, 5}}}, {{{1, 2}, {2, 3}, {3, 4}, {4, 5}}}, {{{1, 2}, {2, 3}, {3, 4}, {4, 5}}}}};
 
-    auto m3 = dot<2, 3, 4>(m1, m2);
-    auto m4 = kron<2, 3, 3, 4>(m1, m2);
+auto s = dot<2, 3, 4>(m1, m2);
+
+int main()
+{
+//    Matrix<2, 3> m1 = {{{{{1, 2}, {2, 3}, {3, 4}}}, {{{1, 2}, {2, 3}, {3, 4}}}}};
+
+  //  Matrix<3, 4> m2 = {
+   //     {{{{1, 2}, {2, 3}, {3, 4}, {4, 5}}}, {{{1, 2}, {2, 3}, {3, 4}, {4, 5}}}, {{{1, 2}, {2, 3}, {3, 4}, {4, 5}}}}};
+ 
+
+Matrix<2,4> m3;
+Matrix<6,12> m4;
+    {
+	Tm tm;
+    	m3 = dot<2, 3, 4>(m1, m2);
+    }
+    {
+	Tm tm;    
+        m4 = kron<2, 3, 3, 4>(m1, m2);
+    }
+    
 
     MatrixDump(m1);
     MatrixDump(m2);
     MatrixDump(m3);
     MatrixDump(m4);
-    
 	return 0;
 }
