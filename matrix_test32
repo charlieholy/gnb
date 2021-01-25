@@ -1,0 +1,171 @@
+// python -c "import numpy as np;a=1+2j;b=2+3j;print np.dot(a,b)"  (-4+7j)
+// python -c "import numpy as np;a=[1+2j,2+3j,3+4j];b=[[1+2j,1+2j],[2+3j,2+3j],[3+4j,3+4j]];print np.dot(a,b);"
+// python -c "import numpy as np;a=[[1,2],[3,4]];b=[[1,2,3],[1,2,3],[1,2,3]];c=np.kron(a,b);print c;"
+
+#include <array>
+#include <complex>
+#include <iostream>
+using namespace std;
+
+// import numpy as np;
+// a=[
+// [1+2j,2+3j,3+4j],
+// [1+2j,2+3j,3+4j],
+// ];
+// b=[
+// [1+2j,2+3j,3+4j,4+5j],
+// [1+2j,2+3j,3+4j,4+5j],
+// [1+2j,2+3j,3+4j,4+5j],
+// ];
+// print np.dot(a,b);
+// print np.kron(a,b);
+
+// [[-12.+21.j -15.+36.j -18.+51.j -21.+66.j]
+//  [-12.+21.j -15.+36.j -18.+51.j -21.+66.j]]
+// [[-3. +4.j -4. +7.j -5.+10.j -6.+13.j -4. +7.j -5.+12.j -6.+17.j -7.+22.j
+//   -5.+10.j -6.+17.j -7.+24.j -8.+31.j]
+//  [-3. +4.j -4. +7.j -5.+10.j -6.+13.j -4. +7.j -5.+12.j -6.+17.j -7.+22.j
+//   -5.+10.j -6.+17.j -7.+24.j -8.+31.j]
+//  [-3. +4.j -4. +7.j -5.+10.j -6.+13.j -4. +7.j -5.+12.j -6.+17.j -7.+22.j
+//   -5.+10.j -6.+17.j -7.+24.j -8.+31.j]
+//  [-3. +4.j -4. +7.j -5.+10.j -6.+13.j -4. +7.j -5.+12.j -6.+17.j -7.+22.j
+//   -5.+10.j -6.+17.j -7.+24.j -8.+31.j]
+//  [-3. +4.j -4. +7.j -5.+10.j -6.+13.j -4. +7.j -5.+12.j -6.+17.j -7.+22.j
+//   -5.+10.j -6.+17.j -7.+24.j -8.+31.j]
+//  [-3. +4.j -4. +7.j -5.+10.j -6.+13.j -4. +7.j -5.+12.j -6.+17.j -7.+22.j
+//   -5.+10.j -6.+17.j -7.+24.j -8.+31.j]]
+#include <chrono>
+using namespace chrono;
+class Tm{
+public:
+  Tm(){ 
+     start = chrono::system_clock::now();
+  }
+
+  virtual ~Tm()
+  {
+	auto end   = system_clock::now();
+  	auto duration = duration_cast<microseconds>(end - start);
+	cout <<  "cost "
+     << double(duration.count()) * microseconds::period::num * 1000 / microseconds::period::den 
+     << "ms " << endl;
+  }
+private:
+  std::chrono::system_clock::time_point start;
+};
+
+template <typename T>
+using is_arith = typename std::enable_if<is_arithmetic<T>::value>::type;
+template <typename T = double, typename = is_arith<T>>
+using Elem = complex<T>;
+
+template <size_t M = 0 /*row*/, size_t N = 0 /*col*/>
+using Matrix = array<array<Elem<>, N>, M>;
+
+template<typename T>
+void isRightValue(const T& v)
+{
+	cout << "R" << endl;
+}
+template<typename T>
+void isRightValue(T& v)
+{
+	cout << "L" << endl;
+}
+
+
+template <size_t M, size_t N, size_t L> inline
+Matrix<M, L>&& dot(const Matrix<M, N>& m1,const Matrix<N, L>& m2)
+{
+    //cout << typeid(m1).name() << endl;
+    isRightValue(m1);
+    Matrix<M, L> m;
+    for (int i = 0; i < M; i++)
+    {
+        for (int j = 0; j < L; j++)
+        {
+            for (int k = 0; k < N; k++)
+            {
+                m[i][j] += m1[i][k] * m2[k][j];
+            }
+        }
+    }
+    return std::move(m);
+}
+
+template <size_t M, size_t N, size_t M1, size_t N1> inline
+Matrix<M * M1, N * N1>&& kron(const Matrix<M, N>& m1,const Matrix<M1, N1>& m2)
+{
+    
+    Matrix<M * M1, N * N1> m3;
+    for (int i = 0; i < M; i++)
+    {
+        for (int j = 0; j < N; j++)
+        {
+            for (int k = 0; k < M1; k++)
+            {
+                for (int l = 0; l < N1; l++)
+                {
+                    m3[i * M1 + k][j * N1 + l] = m1[i][j] * m2[k][l];
+                }
+            }
+        }
+    }
+    return std::move(m3);
+}
+
+template <typename T>
+void MatrixDump(const T& m)
+{
+    cout << "M:" << endl;
+    for (auto row : m)
+    {
+        for (auto elem : row)
+        {
+            cout << " " << elem;
+        }
+        cout << endl;
+    }
+}
+
+Matrix<1, 32> m1 = {{
+	{{{0.7071, 0.7072}, {0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},
+	{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},
+	{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},
+	{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072}}}
+}};
+Matrix<32, 32> m2;
+Matrix<32,1> m3 = {{
+	{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},
+	{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},
+	{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},
+	{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}}
+}};
+
+int main()
+{
+	for(int i=0;i<32;i++)
+	{
+		for(int j=0;j<32;j++)
+		{
+			m2[i][j] = {0.7072,0.7073};
+		}
+	}
+ 
+
+Matrix<1,32> m12;
+Matrix<1,1> m23;
+    {
+		Tm tm;
+    	m12 = dot<1, 32, 32>(m1, m2);
+		m23 = dot<1, 32, 1>(m12, m3);
+    }
+    
+
+    MatrixDump(m1);
+    MatrixDump(m2);
+    MatrixDump(m3);
+	MatrixDump(m12);
+	MatrixDump(m23);
+	return 0;
+}
