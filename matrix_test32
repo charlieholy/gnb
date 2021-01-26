@@ -7,6 +7,13 @@
 #include <iostream>
 using namespace std;
 
+#if 0
+#include<ctime>
+srand(time(0));
+for (int i = 0; i < 1000; i++)
+cout << rand()% 10 << endl;
+#endif
+
 // import numpy as np;
 // a=[
 // [1+2j,2+3j,3+4j],
