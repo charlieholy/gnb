@@ -1,0 +1,3 @@
+-mpopcnt -msse4 -mavx512f -mavx512cd
+
+vaddss
