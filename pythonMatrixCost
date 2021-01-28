@@ -1,0 +1,22 @@
+import numpy as np
+np.set_printoptions(suppress=True)
+import time
+
+def time_me(fn):
+    def _wrapper(*args, **kwargs):
+        start = time.clock()
+        fn(*args, **kwargs)
+        #print "%s cost {:.4f} second".format(fn.__name__, time.clock() - start)
+        print (" {} cost {:.9f} s".format(fn.__name__,time.clock() - start))
+    return _wrapper
+m1 = np.array(0.7071+0.7072j)
+m1 = np.resize(m1,(1,32))
+m2 = np.array(0.7072+0.7073j)
+m2 = np.resize(m2,(32,32))
+m3 = np.array(0.7073+0.7074j)
+m3 = np.resize(m2,(32,1))
+@time_me
+def test():
+    np.dot(np.dot(m1,m2),m3)
+
+test()
