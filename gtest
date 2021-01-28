@@ -1,0 +1,71 @@
+#include <iostream>
+#include <vector>
+using namespace std;
+
+class A
+{
+public:
+  virtual void TestBody() = 0;
+};
+
+#define DISALLOW_COPY_AND_ASSIGN_(type) \
+  type(type const &) = delete; \
+  void operator=(type const &) = delete;
+
+class TestFB {
+public:
+  virtual ~TestFB(){}
+  virtual A* CreateTest() = 0;
+protected:
+  TestFB(){}
+private:
+  DISALLOW_COPY_AND_ASSIGN_(TestFB);
+  //TestFB(TestFB const &) = delete;
+  //void operator=(TestFB const &) = delete;
+};
+
+template<class TestClass>
+class TestFactory : public TestFB{
+public:
+  virtual A* CreateTest() {return new TestClass;}
+};
+
+
+::std::vector<TestFB*> TestCaselists;
+
+int reg(TestFB* fb)
+{
+   TestCaselists.push_back(fb);
+   return 0;
+}
+
+
+# define TEST(test_case_name, test_name) \
+  class test_case_name##_##test_name##_Test : public A { \
+public: \
+  static int test_info_  __attribute__ ((unused)); \
+  virtual void TestBody(); \
+};\
+int test_case_name##_##test_name##_Test::test_info_ = reg(new TestFactory<test_case_name##_##test_name##_Test>);\
+void test_case_name##_##test_name##_Test::TestBody()
+
+TEST(c,d)
+{
+  cout << "cd" << endl;
+}
+
+
+int main()
+{
+  cout << "asd" << endl;
+
+  for(const auto& it:TestCaselists)
+  {
+     it->CreateTest()->TestBody();
+  }
+  //TestFB* t = TestCaselists.front();
+ 
+
+  return 0;
+
+}
