@@ -2,6 +2,18 @@
 // python -c "import numpy as np;a=[1+2j,2+3j,3+4j];b=[[1+2j,1+2j],[2+3j,2+3j],[3+4j,3+4j]];print np.dot(a,b);"
 // python -c "import numpy as np;a=[[1,2],[3,4]];b=[[1,2,3],[1,2,3],[1,2,3]];c=np.kron(a,b);print c;"
 
+#if 0
+import numpy as np
+m1 = np.array(0.7071+0.7072j)
+m1 = np.resize(m1,(1,32))
+m2 = np.array(0.7072+0.7073j)
+m2 = np.resize(m2,(32,32))
+m3 = np.array(0.7073+0.7074j)
+m3 = np.resize(m2,(32,1))
+mres = np.dot(np.dot(m1,m2),m3)
+print (mres)
+#endif
+
 #include <array>
 #include <complex>
 #include <iostream>
