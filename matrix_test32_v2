@@ -1,0 +1,311 @@
+#include <iostream>
+#include <complex>
+#include <ctime>
+#include <stdint.h>
+#include <iostream>
+#include <string>
+#include <sys/time.h>
+#include <array>
+#include <stdio.h>
+using std::string;
+
+
+static inline int64_t getTimeNs()
+{
+    struct timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+    return ts.tv_sec*1000000000 + ts.tv_nsec;
+}
+using namespace std;
+
+template<typename T=float>
+using mycomplex = array<T,2>;
+
+template<typename T=float>
+inline mycomplex<T> calcMyComplexDot(const mycomplex<T>& e1,const mycomplex<T>& e2)
+{
+   mycomplex<T> e3;
+   e3[0] = e1[0]*e2[0] - e1[1]*e2[1];
+   e3[1] = e1[1]*e2[0] + e1[0]*e2[1];
+   return e3;   
+}
+
+template<typename T=float>
+inline mycomplex<T> calcMyComplexPlus(const mycomplex<T>& e1,const mycomplex<T>& e2)
+{
+   mycomplex<T> e3;
+   e3[0] = e1[0] + e2[0];
+   e3[1] = e1[1] + e2[1];
+   return e3;   
+}
+
+
+template <size_t M = 0 /*row*/, size_t N = 0 /*col*/>
+using Matrix = array<array<mycomplex<>, N>, M>;
+
+template <size_t M = 0 /*row*/, size_t N = 0 /*col*/>
+using MatrixStl = array<array<complex<float>, N>, M>;
+
+template <size_t M, size_t N, size_t L>  
+Matrix<M, L> dot(const Matrix<M, N>& m1,const Matrix<N, L>& m2)
+{
+    Matrix<M, L> m;
+    for ( int i = 0; i < M; i++)
+    {
+        for ( int j = 0; j < L; j++)
+        {
+            for ( int k = 0; k < N; k++)
+            {
+                  m[i][j] = calcMyComplexPlus<>( m[i][j],calcMyComplexDot<>(m1[i][k],m2[k][j]));
+            }
+        }
+    }
+    return m;
+}
+
+constexpr int ct = 1024*32;
+
+int main(){
+
+    Matrix<1, 32> m1 = {{
+        {{{0.7071, 0.7072}, {0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},
+        {0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},
+        {0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},
+        {0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072}}}
+    }};
+    Matrix<32, 32> m2;
+    Matrix<32,1> m3 = {{
+        {{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},
+        {{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},
+        {{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},
+        {{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}}
+    }};
+    for(int i=0;i<32;i++)
+    {
+        for(int j=0;j<32;j++)
+        {
+            m2[i][j] = {0.7072,0.7073};
+        }
+    }
+    {
+        complex<float> c1(0.7071,0.7072);
+        complex<float> c2(0.7073,0.7074);
+        complex<float> res;
+
+        auto beforeTs = getTimeNs() ;
+        for(int i=0;i<ct;i++)
+        {
+            res += c1*c1;
+        }
+        auto afterTs = getTimeNs() ;
+        cout << "complex ct: "<< ct << " times: " << afterTs - beforeTs << "ns" <<  endl;
+        cout << "res: " << res << endl;
+    }
+    {
+        mycomplex<> myc1 = {0.7071,0.7072};
+        mycomplex<> myc2 = {0.7073,0.7074};
+        mycomplex<> myres = {0,0};
+
+        auto beforeTs = getTimeNs() ;
+        for(int i=0;i<ct;i++)
+        {
+            myres[0] += (myc1[0]*myc2[0]-myc1[1]*myc2[1]);
+            myres[1] += (myc1[1]*myc2[0]+myc1[0]*myc2[1]);
+        }
+        auto afterTs = getTimeNs() ;
+        cout << "Mycomplex ct: " << ct << " times: " << afterTs - beforeTs  << "ns" <<  endl;
+        cout << "res: " << myres[0] << ":" << myres[1] << endl;
+    }
+    {
+        mycomplex<> my3c1 = {0.7071,0.7072};
+        mycomplex<> my3c2 = {0.7073,0.7074};
+        mycomplex<> my3res = {0,0};
+
+        auto beforeTs = getTimeNs() ;
+        for(int i=0;i<ct;i++)
+        {
+            my3res = calcMyComplexPlus<>( my3res,calcMyComplexDot<>(my3c1,my3c2));
+        }
+        auto afterTs = getTimeNs() ;
+        cout << "My3complex ct: " << ct << " times: " << afterTs - beforeTs << "ns" <<  endl;
+        cout << "res3: " << my3res[0] << ":" << my3res[1] << endl;
+    }
+    {
+        mycomplex<int> my4c1 = {71,72};
+        mycomplex<int> my4c2 = {73,74};
+        mycomplex<int> my4res = {0,0};
+
+        auto beforeTs = getTimeNs() ;
+        for(int i=0;i<ct;i++)
+        {
+            my4res = calcMyComplexPlus<int>( my4res,calcMyComplexDot<int>(my4c1,my4c2));
+        }
+        auto afterTs = getTimeNs() ;
+        cout << "My4complex ct: " << ct << " times: " << afterTs - beforeTs  << "ns" <<  endl;
+        cout << "int res4: " << my4res[0] << ":" << my4res[1] << endl;
+        cout << endl;
+    }
+    #if 0
+    {
+
+        auto bts = getTimeNs() ;
+        Matrix<1,1> mRes = dot<1,32,1>(dot<1, 32, 32>(m1, m2),m3);
+        cout << "Matrix dot cost: " << getTimeNs() -bts << "ns" <<  endl;
+        cout << mRes[0][0][0] << ":" << mRes[0][0][1] << endl;
+
+
+    }
+    {
+        auto bts = getTimeNs() ;
+        Matrix<1, 32> ma12;
+        for (int i = 0; i < 1; i++)
+        {
+            for (int j = 0; j < 32; j++)
+            {
+                for (int k = 0; k < 32; k++)
+                {
+                    ma12[i][j] = calcMyComplexPlus<>( ma12[i][j],calcMyComplexDot<>(m1[i][k],m2[k][j]));
+                }
+            }
+        }
+        Matrix<1, 1> ma23;
+        for (int i = 0; i < 1; i++)
+        {
+            for (int j = 0; j < 1; j++)
+            {
+                for (int k = 0; k < 32; k++)
+                {
+                    ma23[i][j] = calcMyComplexPlus<>( ma23[i][j],calcMyComplexDot<>(ma12[i][k],m3[k][j]));
+                }
+            }
+        }
+        cout << "Matrix cost: " << getTimeNs() -bts << "ns" <<  endl;
+        cout << "Matrix:" << ma23[0][0][0] << ":" << ma23[0][0][1] << endl;
+
+    }
+#endif
+    {
+        MatrixStl<1, 32> m1 = {{
+            {{{0.7071, 0.7072}, {0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},
+            {0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},
+            {0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},
+            {0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072},{0.7071, 0.7072}}}
+        }};
+        MatrixStl<32, 32> m2;
+        MatrixStl<32,1> m3 = {{
+            {{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},
+            {{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},
+            {{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},
+            {{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}},{{{0.7073, 0.7074}}}
+        }};
+        for(int i=0;i<32;i++)
+        {
+            for(int j=0;j<32;j++)
+            {
+                m2[i][j] = {0.7072,0.7073};
+            }
+        }
+
+        auto bets = getTimeNs() ;
+        MatrixStl<1, 32> m12;
+        for (int i = 0; i < 1; i++)
+        {
+            for (int j = 0; j < 32; j++)
+            {
+                for (int k = 0; k < 32; k++)
+                {
+                    m12[i][j] += m1[i][k]*m2[k][j];
+                }
+            }
+        }
+        MatrixStl<1, 1> m23;
+        for (int i = 0; i < 1; i++)
+        {
+            for (int j = 0; j < 1; j++)
+            {
+                for (int k = 0; k < 32; k++)
+                {
+                    m23[i][j] += m12[i][k]*m3[k][j];
+                }
+            }
+        }
+        auto afts = getTimeNs();
+        cout << "MatrixStl cost: " << afts -bets << "ns" <<  endl;
+        cout << "MatrixStl:" << m23[0][0]  << endl;
+	printf("printf %d\n",afts-bets);
+    }
+    {
+
+        auto beforeTs = getTimeNs() ;
+        Matrix<1, 32> m12;
+        for (int i = 0; i < 1; i++)
+        {
+            for (int j = 0; j < 32; j++)
+            {
+                for (int k = 0; k < 32; k++)
+                {
+                    m12[i][j][0] +=  (m1[i][k][0]*m2[k][j][0] - m1[i][k][1]*m2[k][j][1]);
+                    m12[i][j][1] +=  (m1[i][k][1]*m2[k][j][0] + m1[i][k][0]*m2[k][j][1]);
+                }
+            }
+        }
+        Matrix<1, 1> m23={0,0};
+        for (int i = 0; i < 1; i++)
+        {
+            for (int j = 0; j < 1; j++)
+            {
+                for (int k = 0; k < 32; k++)
+                {
+                    m23[i][j][0] +=  (m12[i][k][0]*m3[k][j][0] - m12[i][k][1]*m3[k][j][1]);
+                    m23[i][j][1] +=  (m12[i][k][1]*m3[k][j][0] + m12[i][k][0]*m3[k][j][1]);
+                }
+            }
+        }
+        auto afterTs = getTimeNs() ;
+        cout << "Matrix2 cost: " << afterTs - beforeTs << "ns" <<  endl;
+        cout << "Matrix2:" << m23[0][0][0] << ":" << m23[0][0][1] << endl;
+    }
+    {
+        Matrix<1, 32> m12;
+        Matrix<1, 1> m23={0,0};
+        auto beforeTs = getTimeNs() ;
+        for(int i=0;i<256;i++)
+        {
+          
+            for (int i = 0; i < 1; i++)
+            {
+                for (int j = 0; j < 32; j++)
+                {
+                    for (int k = 0; k < 32; k++)
+                    {
+                        m12[i][j][0] +=  (m1[i][k][0]*m2[k][j][0] - m1[i][k][1]*m2[k][j][1]);
+                        m12[i][j][1] +=  (m1[i][k][1]*m2[k][j][0] + m1[i][k][0]*m2[k][j][1]);
+                    }
+                }
+            }
+            for (int i = 0; i < 1; i++)
+            {
+                for (int j = 0; j < 1; j++)
+                {
+                    for (int k = 0; k < 32; k++)
+                    {
+                        m23[i][j][0] +=  (m12[i][k][0]*m3[k][j][0] - m12[i][k][1]*m3[k][j][1]);
+                        m23[i][j][1] +=  (m12[i][k][1]*m3[k][j][0] + m12[i][k][0]*m3[k][j][1]);
+                    }
+                }
+            }
+        }
+        auto afterTs = getTimeNs() ;
+        cout << "Matrix2 256 cost: " << afterTs - beforeTs << "ns" <<  endl;
+        cout << "Matrix2 256:" << m23[0][0][0] << ":" << m23[0][0][1] << endl;
+
+    }
+    {
+        auto beforeTs = getTimeNs() ;
+        auto afterTs = getTimeNs() ;
+        cout << afterTs - beforeTs << endl;
+    }
+
+
+    return 0;
+}
