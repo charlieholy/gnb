@@ -1,0 +1,33 @@
+#include <iostream>
+using namespace std;
+
+template<bool test>
+class Mock
+{
+public:
+  template<typename T>
+  using on_prod = std::enable_if_t<test,T>;
+
+  template<typename T>
+  using on_test = std::enable_if_t<!test,T>;
+
+};
+
+using tMock = Mock<false>;
+template<typename T = void>
+tMock::on_prod<T> foo(){
+  cout << "on prod..." << endl;
+}
+
+template<typename T = void>
+tMock::on_test<T> foo(){
+  cout << "on test..." << endl;
+}
+
+
+int main()
+{
+  foo();
+  cout <<  "asd" << endl;
+  return 0;
+}
