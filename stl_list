@@ -1,8 +1,6 @@
-pwd
-6/bits/stl_list.h
-
 #include <iostream>
-using namespace std;
+#include <iterator>
+//using namespace std;
 
 template<typename T>
 struct __list_node{
@@ -12,17 +10,17 @@ struct __list_node{
     T data;
 };
 
-template<class T,class Ref,class Ptr>
+template<class T,class Ref = T&,class Ptr=T*>
 struct __list_iterator {
     typedef __list_iterator<T,T&,T*> iterator;
     typedef __list_iterator<T,Ref,Ptr> self; 
-    typedef bidirectional_iterator_tag iterator_category;
+    typedef std::bidirectional_iterator_tag iterator_category;
     typedef T value_type;
     typedef Ptr pointer;
     typedef Ref reference;
     typedef __list_node<T>* link_type;
     typedef size_t size_type;
-    typedef ptrdiff_t difference_type;
+    typedef std::ptrdiff_t difference_type;
 
     link_type node;
 
@@ -62,13 +60,26 @@ protected:
     typedef __list_node<T> list_node;
 public:
     typedef list_node* link_type;
+    typedef typename __list_iterator<T>::iterator iterator; 
+    typedef typename __list_iterator<T>::reference reference; 
+    typedef size_t  size_type;
 protected:
     link_type node;
+    iterator begin() {return (link_type)((*node).next);}
+    iterator end(){return node;}
+    bool empty() const {return node->next == node;}
+    size_type size() const {
+        size_type result = 0;
+        distance(begin(),end(),result);
+        return result;
+    }
+    reference front() {return *begin();}
+    reference back() {return *(--end());}
 
 };
 
 int main()
 {
-    cout << "ad" << endl;
+    std::cout << "ad" << std::endl;
     return 0;
 }
