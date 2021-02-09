@@ -1,0 +1,61 @@
+#include <vector>
+#include <iostream>
+#include <algorithm>
+using namespace std;
+
+template<typename T>
+void dumpVec(T ivec)
+{
+  for(int i=0;i<ivec.size();++i)
+	cout << ivec[i] << ' ';
+  cout << endl;
+}
+
+template<typename T>
+void dumpArr(T ivec,size_t size)
+{
+  for(int i=0;i<size;++i)
+	cout << ivec[i] << ' ';
+  cout << endl;
+}
+
+int main()
+{
+  cout << "asd" << endl;
+  int ia[9] = {0,1,2,3,4,8,9,3,5};
+  vector<int> ivec(ia,ia+9);
+  dumpVec(ivec);
+  make_heap(ivec.begin(),ivec.end());
+  dumpVec(ivec);
+  ivec.push_back(7);
+  make_heap(ivec.begin(),ivec.end());
+  dumpVec(ivec);
+
+  pop_heap(ivec.begin(),ivec.end());
+  cout << ivec.back() << endl;
+  ivec.pop_back();
+  dumpVec(ivec);
+  
+  sort_heap(ivec.begin(),ivec.end());
+  dumpVec(ivec);
+  
+  { //array
+    int ia[9] = {0,1,2,3,4,8,9,3,5};
+    make_heap(ia,ia+9);
+    sort_heap(ia,ia+9);
+    dumpArr(ia,9);
+
+    make_heap(ia,ia+9);
+    pop_heap(ia,ia+9);
+    dumpArr(ia,9);
+  }
+  { 
+    int ia[6] = {4,1,7,6,2,5};
+    make_heap(ia,ia+6);
+    dumpArr(ia,6);
+
+  }
+
+  return 0;
+
+}
