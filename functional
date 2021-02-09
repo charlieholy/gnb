@@ -1,0 +1,24 @@
+#include <iostream>
+#include <functional>
+using namespace std;
+
+class Config{};
+
+using onStart = std::function<void(Config&)>;
+void EachConfig(const onStart& onstart)
+{
+  Config c;
+  for(int i=0;i<5;i++)
+  {
+    onstart(c);
+  }
+}
+
+
+int main()
+{
+  EachConfig([](Config& c){cout << "op" << endl;});
+  auto f = [](int a)->bool{ cout << "asd" << a << endl; return false;};
+  f(2);
+  return 0;
+}
