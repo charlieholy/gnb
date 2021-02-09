@@ -19,4 +19,10 @@ m3 = np.resize(m2,(32,1))
 def test():
     np.dot(np.dot(m1,m2),m3)
 
+@time_me
+def test256():
+    for i in range(1,256):	
+    	np.dot(np.dot(m1,m2),m3)
+
 test()
+test256()
