@@ -1,0 +1,29 @@
+#include <iostream>
+#include <tuple>
+using namespace std;
+
+template<std::size_t I = 0,typename FuncT ,typename... Tp>
+typename std::enable_if<I == sizeof...(Tp),void>::type for_each(std::tuple<Tp...>& ,FuncT )
+{
+};
+
+template<std::size_t I = 0,typename FuncT ,typename... Tp>
+typename std::enable_if<I<sizeof...(Tp),void>::type for_each(std::tuple<Tp...>& t,FuncT f)
+{
+        f(std::get<I>(t));
+        for_each<I + 1, FuncT, Tp...>(t,f);
+};
+
+class A{
+public:
+        template<class T>
+        void operator()(T& meta){ cout << "type:" << typeid(meta).name() << endl; }
+};
+
+int main()
+{
+  std::tuple<int,string,float,long> paramList;
+  A a;
+  for_each(paramList,a);
+  return 0;
+}
