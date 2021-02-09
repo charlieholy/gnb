@@ -1,0 +1,329 @@
+#pragma once
+
+#include <boost/algorithm/string.hpp>
+#include <boost/preprocessor.hpp>
+#include <string>
+
+#define METADATA_IS_KEY 1
+#define METADATA_IS_DYNAMIC_DATA 2
+#define METADATA_IS_PARAMETER_IN_SUPER_CLASS 4
+#define METADATA_IS_PARAMETER_VARIANT_DISCRIMINATOR 8
+#define METADATA_IS_PARAMETER_VARIANT 16
+
+#define STRINGIZE_ALL(...) STRINGIZE_ALL_I(__VA_ARGS__)
+#define STRINGIZE_ALL_I(...) #__VA_ARGS__
+
+// If number of tuples exceed 63 elements, parameters must be split and declared with macros
+// REFLECTABLE_PARAMETERS_DECL_x and REFLECTABLE_PARAMETERS_IMPL_x
+
+#define REFLECTABLE_PARAMETERS_DECL(ObjectType, ...) \
+    PARAMETERS_DECL(ObjectType, __VA_ARGS__)         \
+    TUPLE_DECL_I(ObjectType, 1, __VA_ARGS__)         \
+    PRIVATE_FIELDS_DECL(ObjectType)                  \
+    PRIVATE_STATIC_FIELDS_DECL(ObjectType)
+
+#define REFLECTABLE_PARAMETERS_IMPL(ObjectType, ...) \
+    PARAMETERS_INIT(ObjectType, __VA_ARGS__)         \
+    TUPLE_INIT_I(ObjectType, 1, __VA_ARGS__)         \
+    STATIC_FIELDS_INIT(ObjectType)
+
+#define REFLECTABLE_PARAMETERS_DECL_1(ObjectType, ...) \
+    PARAMETERS_DECL(ObjectType, __VA_ARGS__)           \
+    TUPLE_DECL_I(ObjectType, 1, __VA_ARGS__)           \
+    PRIVATE_FIELDS_DECL(ObjectType)                    \
+    PRIVATE_STATIC_FIELDS_DECL(ObjectType)
+
+#define REFLECTABLE_PARAMETERS_DECL_2(ObjectType, ...) \
+    PARAMETERS_DECL(ObjectType, __VA_ARGS__)           \
+    TUPLE_DECL_I(ObjectType, 2, __VA_ARGS__)
+
+#define REFLECTABLE_PARAMETERS_DECL_3(ObjectType, ...) \
+    PARAMETERS_DECL(ObjectType, __VA_ARGS__)           \
+    TUPLE_DECL_I(ObjectType, 3, __VA_ARGS__)
+
+#define REFLECTABLE_PARAMETERS_DECL_4(ObjectType, ...) \
+    PARAMETERS_DECL(ObjectType, __VA_ARGS__)           \
+    TUPLE_DECL_I(ObjectType, 4, __VA_ARGS__)
+
+#define REFLECTABLE_PARAMETERS_IMPL_1(ObjectType, ...) \
+    PARAMETERS_INIT(ObjectType, __VA_ARGS__)           \
+    TUPLE_INIT_I(ObjectType, 1, __VA_ARGS__)           \
+    STATIC_FIELDS_INIT(ObjectType)
+
+#define REFLECTABLE_PARAMETERS_IMPL_2(ObjectType, ...) \
+    PARAMETERS_INIT(ObjectType, __VA_ARGS__)           \
+    TUPLE_INIT_I(ObjectType, 2, __VA_ARGS__)
+
+#define REFLECTABLE_PARAMETERS_IMPL_3(ObjectType, ...) \
+    PARAMETERS_INIT(ObjectType, __VA_ARGS__)           \
+    TUPLE_INIT_I(ObjectType, 3, __VA_ARGS__)
+
+#define PARAMETERS_DECL(ObjectType, ...) \
+    BOOST_PP_SEQ_FOR_EACH_I(PARAMETER_DECL, ObjectType, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))
+
+#define PARAMETER_DECL(r, ObjectType, i, element)    \
+private:                                             \
+    COMPUTE_PARAMETER_FIELD_DECL_FROM_TUPLE(element) \
+    COMPUTE_META_GETTER_AND_SETTER(element)          \
+    COMPUTE_METAPARAMETER_FIELD(element)             \
+                                                     \
+public:                                              \
+    COMPUTE_PARAMETER_ACCESSORS_FROM_TUPLE(element)
+
+#define COMPUTE_META_GETTER_AND_SETTER(element)                                          \
+    static std::function<const EXPAND_TUPLE_ELEMENT(0, element) & (void*)> BOOST_PP_CAT( \
+        BOOST_PP_TUPLE_ELEM(1, element), _getter);                                       \
+    static std::function<EXPAND_TUPLE_ELEMENT(0, element) & (void*)> BOOST_PP_CAT(       \
+        BOOST_PP_TUPLE_ELEM(1, element), _setter);
+
+#define COMPUTE_METAPARAMETER_FIELD(element)                                                                           \
+    static sct::common::configuration::reflection::core::MetaParameter<EXPAND_TUPLE_ELEMENT(0, element)> BOOST_PP_CAT( \
+        BOOST_PP_TUPLE_ELEM(1, element), _metaParameter);
+
+#define PRIVATE_FIELDS_DECL(ObjectType)
+#define PRIVATE_STATIC_FIELDS_DECL(ObjectType)
+
+#ifdef REFLECTION_ENABLED
+
+#define TUPLE_DECL_I(ObjectType, i, ...)                                                                            \
+public:                                                                                                             \
+    static std::tuple<BOOST_PP_SEQ_FOR_EACH_I(TUPLE_DECL_ELEM, ObjectType, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))>& \
+        getParamList_##i()                                                                                          \
+    {                                                                                                               \
+        return paramList_##i;                                                                                       \
+    }                                                                                                               \
+                                                                                                                    \
+private:                                                                                                            \
+    static std::tuple<BOOST_PP_SEQ_FOR_EACH_I(TUPLE_DECL_ELEM, ObjectType, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))>  \
+        paramList_##i;                                                                                              \
+    COMPUTE_EXTERN_TEMPLATES_I(ObjectType, i, __VA_ARGS__)
+
+#ifdef GENERATE_EXTERN_TEMPLATE
+
+#define COMPUTE_EXTERN_TEMPLATES_I(ObjectType, i, ...)                                                \
+    SET_EXTERN_TEMPL_DECL(i)                                                                          \
+    BOOST_PP_SEQ_FOR_EACH_I(SET_EXTERN_TEMPL_ELEM, ObjectType, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__)) \
+    }
+
+#define SET_EXTERN_TEMPL_DECL(i)                                                                        \
+public:                                                                                                 \
+    void visitMetaPameterTypes_##i(std::function<void(const std::string&, const std::string&)> visitor) \
+    {                                                                                                   \
+        std::string metaParameterType{};
+
+#define SET_EXTERN_TEMPL_ELEM(r, ObjectType, i, element)                       \
+    metaParameterType = BOOST_PP_STRINGIZE(GEN_EXTERN_TEMPLATE_ELEM(element)); \
+    boost::trim_right(metaParameterType);                                      \
+    visitor(BOOST_PP_STRINGIZE(ObjectType), metaParameterType);
+
+#define GEN_EXTERN_TEMPLATE_ELEM(element) EXPAND_TUPLE_ELEMENT(0, element)
+
+#else
+#define COMPUTE_EXTERN_TEMPLATES_I(ObjectType, i, ...)
+#endif
+
+#else
+#define TUPLE_DECL_I(ObjectType, i, ...)
+#endif
+
+#define TUPLE_DECL_ELEM(r, ObjectType, i, element) \
+    BOOST_PP_IF(i, BOOST_PP_COMMA, BOOST_PP_EMPTY) \
+    () sct::common::configuration::reflection::core::MetaParameter<EXPAND_TUPLE_ELEMENT(0, element)>
+
+#define PARAMETERS_INIT(ObjectType, ...) \
+    BOOST_PP_SEQ_FOR_EACH_I(PARAMETER_INIT, ObjectType, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))
+
+#define PARAMETER_INIT(r, ObjectType, i, element)                                                                 \
+    std::function<const EXPAND_TUPLE_ELEMENT(0, element) & (void*)> ObjectType::BOOST_PP_CAT(                     \
+        BOOST_PP_TUPLE_ELEM(1, element), _getter){[](void* pObject) -> const EXPAND_TUPLE_ELEMENT(0, element) & { \
+        auto* pMetaObject = static_cast<ObjectType*>(pObject);                                                    \
+        return pMetaObject->BOOST_PP_TUPLE_ELEM(1, element)();                                                    \
+    }};                                                                                                           \
+                                                                                                                  \
+    std::function<EXPAND_TUPLE_ELEMENT(0, element) & (void*)> ObjectType::BOOST_PP_CAT(                           \
+        BOOST_PP_TUPLE_ELEM(1, element), _setter){[](void* pObject) -> EXPAND_TUPLE_ELEMENT(0, element) & {       \
+        auto* pMetaObject = static_cast<ObjectType*>(pObject);                                                    \
+        return pMetaObject->BOOST_PP_TUPLE_ELEM(1, element)();                                                    \
+    }};                                                                                                           \
+                                                                                                                  \
+    sct::common::configuration::reflection::core::MetaParameter<EXPAND_TUPLE_ELEMENT(0, element)>                 \
+        ObjectType::BOOST_PP_CAT(BOOST_PP_TUPLE_ELEM(1, element), _metaParameter){                                \
+            BOOST_PP_STRINGIZE(EXPAND_TUPLE_ELEMENT(0, element)),                                                 \
+            BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(1, element)),                                                  \
+            BOOST_PP_CAT(BOOST_PP_TUPLE_ELEM(1, element), _getter),                                               \
+            BOOST_PP_CAT(BOOST_PP_TUPLE_ELEM(1, element), _setter),                                               \
+            STRINGIZE_ALL(COMPUTE_PROPERTIES_FROM_TUPLE(element))};
+
+#define COMPUTE_PROPERTIES_FROM_TUPLE(tuple) COMPUTE_PROPERTIES_FROM_LIST(BOOST_PP_TUPLE_TO_LIST(tuple))
+#define COMPUTE_PROPERTIES_FROM_LIST(list) COMPUTE_PROPERTIES_SKIP_TYPE(list)
+#define COMPUTE_PROPERTIES_SKIP_TYPE(list) COMPUTE_PROPERTIES_SKIP_FIELD(BOOST_PP_LIST_REST(list))
+#define COMPUTE_PROPERTIES_SKIP_FIELD(list) COMPUTE_PROPERTIES_SKIP_ARGS(BOOST_PP_LIST_REST(list))
+#define COMPUTE_PROPERTIES_SKIP_ARGS(list) EXPAND_LIST(BOOST_PP_LIST_REST(list))
+
+#define EXPAND_REST_LIST(list) BOOST_PP_LIST_FOR_EACH(EXPAND_ELEMENT, unused, list)
+
+#define EXPAND_ELEMENT(r, data, elem) BOOST_PP_COMMA() elem
+
+#ifdef REFLECTION_ENABLED
+
+#define TUPLE_INIT_I(ObjectType, i, ...)                                                                    \
+    std::tuple<BOOST_PP_SEQ_FOR_EACH_I(TUPLE_DECL_ELEM, ObjectType, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))> \
+        ObjectType::paramList_##i = std::make_tuple(                                                        \
+            BOOST_PP_SEQ_FOR_EACH_I(TUPLE_INIT_ELEM, ObjectType, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__)));
+#else
+
+#define TUPLE_INIT_I(ObjectType, i, ...)
+
+#endif
+#define TUPLE_INIT_ELEM(r, ObjectType, i, element) \
+    BOOST_PP_IF(i, BOOST_PP_COMMA, BOOST_PP_EMPTY) \
+    () ObjectType::BOOST_PP_CAT(BOOST_PP_TUPLE_ELEM(1, element), _metaParameter)
+
+// Macros to compute parameter field: depends if METADATA_IS_PARAMETER_IN_SUPER_CLASS or not
+#define COMPUTE_PARAMETER_FIELD_DECL_FROM_TUPLE(tuple) \
+    COMPUTE_PARAMETER_FIELD_DECL_FROM_LIST(tuple, BOOST_PP_TUPLE_TO_LIST(tuple))
+#define COMPUTE_PARAMETER_FIELD_DECL_FROM_LIST(tuple, list) COMPUTE_PARAMETER_FIELD_DECL_SKIP_TYPE(tuple, list)
+#define COMPUTE_PARAMETER_FIELD_DECL_SKIP_TYPE(tuple, list) \
+    COMPUTE_PARAMETER_FIELD_DECL_SKIP_FIELD(tuple, BOOST_PP_LIST_REST(list))
+#define COMPUTE_PARAMETER_FIELD_DECL_SKIP_FIELD(tuple, list) \
+    COMPUTE_PARAMETER_FIELD_DECL_SKIP_ARGS(tuple, BOOST_PP_LIST_REST(list))
+#define COMPUTE_PARAMETER_FIELD_DECL_SKIP_ARGS(tuple, list)                                                     \
+    BOOST_PP_IF(                                                                                                \
+        BOOST_PP_LIST_IS_NIL(list), COMPUTE_PARAMETER_FIELD_DECL_LIST_EMPTY, COMPUTE_PARAMETER_FIELD_DECL_LIST) \
+    (tuple, list)
+
+#define COMPUTE_PARAMETER_FIELD_DECL_LIST(tuple, list) \
+    COMPUTE_PARAMETER_FIELD_DECL(tuple, BOOST_PP_TUPLE_TO_LIST(BOOST_PP_LIST_FIRST(BOOST_PP_LIST_REST(list))))
+
+#define COMPUTE_PARAMETER_FIELD_DECL(tuple, list)    \
+    BOOST_PP_IF(                                     \
+        BOOST_PP_LIST_IS_NIL(list),                  \
+        COMPUTE_PARAMETER_FIELD_DECL_LIST_EMPTY,     \
+        COMPUTE_PARAMETER_FIELD_DECL_LIST_NOT_EMPTY) \
+    (tuple, list)
+
+#define COMPUTE_PARAMETER_FIELD_DECL_LIST_NOT_EMPTY(tuple, list)                         \
+    BOOST_PP_IF(                                                                         \
+        BOOST_PP_EQUAL(BOOST_PP_LIST_FIRST(list), METADATA_IS_PARAMETER_IN_SUPER_CLASS), \
+        COMPUTE_PARAMETER_FIELD_DECL_IN_SUPER_CLASS,                                     \
+        COMPUTE_PARAMETER_FIELD_DECL_REST_LIST)                                          \
+    (tuple, list)
+
+#define COMPUTE_PARAMETER_FIELD_DECL_REST_LIST(tuple, list) \
+    COMPUTE_PARAMETER_FIELD_DECL_FROM_SUB_LIST(tuple, BOOST_PP_LIST_REST(list))
+
+#define COMPUTE_PARAMETER_FIELD_DECL_SUBLIST_NOT_EMPTY(tuple, list)                      \
+    BOOST_PP_IF(                                                                         \
+        BOOST_PP_EQUAL(BOOST_PP_LIST_FIRST(list), METADATA_IS_PARAMETER_IN_SUPER_CLASS), \
+        COMPUTE_PARAMETER_FIELD_DECL_IN_SUPER_CLASS,                                     \
+        COMPUTE_PARAMETER_FIELD_DECL_REST_LIST)                                          \
+    (tuple, list)
+
+#define COMPUTE_PARAMETER_FIELD_DECL_FROM_SUB_LIST(tuple, list) \
+    BOOST_PP_IF(                                                \
+        BOOST_PP_LIST_IS_NIL(list),                             \
+        COMPUTE_PARAMETER_FIELD_DECL_LIST_EMPTY,                \
+        COMPUTE_PARAMETER_FIELD_DECL_SUBLIST_NOT_EMPTY)         \
+    (tuple, list)
+
+#define COMPUTE_PARAMETER_FIELD_DECL_LIST_EMPTY(tuple, list) EXPAND_PARAMETER_FIELD_DECL(tuple)
+
+#define COMPUTE_PARAMETER_FIELD_DECL_IN_SUPER_CLASS(tuple, list)
+
+#define EXPAND_PARAMETER_FIELD_DECL(tuple) \
+    EXPAND_TUPLE_ELEMENT(0, tuple) BOOST_PP_CAT(BOOST_PP_TUPLE_ELEM(1, tuple), _){EXPAND_TUPLE_ELEMENT(2, tuple)};
+
+// Macros to compute parameter accessors: depends if METADATA_IS_PARAMETER_IN_SUPER_CLASS or not
+
+#define COMPUTE_PARAMETER_ACCESSORS_FROM_TUPLE(tuple) \
+    COMPUTE_PARAMETER_ACCESSORS_FROM_LIST(tuple, BOOST_PP_TUPLE_TO_LIST(tuple))
+#define COMPUTE_PARAMETER_ACCESSORS_FROM_LIST(tuple, list) COMPUTE_PARAMETER_ACCESSORS_SKIP_TYPE(tuple, list)
+#define COMPUTE_PARAMETER_ACCESSORS_SKIP_TYPE(tuple, list) \
+    COMPUTE_PARAMETER_ACCESSORS_SKIP_FIELD(tuple, BOOST_PP_LIST_REST(list))
+#define COMPUTE_PARAMETER_ACCESSORS_SKIP_FIELD(tuple, list) \
+    COMPUTE_PARAMETER_ACCESSORS_SKIP_ARGS(tuple, BOOST_PP_LIST_REST(list))
+#define COMPUTE_PARAMETER_ACCESSORS_SKIP_ARGS(tuple, list)                                                            \
+    BOOST_PP_IF(BOOST_PP_LIST_IS_NIL(list), COMPUTE_PARAMETER_ACCESSORS_LIST_EMPTY, COMPUTE_PARAMETER_ACCESSORS_LIST) \
+    (tuple, list)
+
+#define COMPUTE_PARAMETER_ACCESSORS_LIST(tuple, list) \
+    COMPUTE_PARAMETER_ACCESSORS(tuple, BOOST_PP_TUPLE_TO_LIST(BOOST_PP_LIST_FIRST(BOOST_PP_LIST_REST(list))))
+
+#define COMPUTE_PARAMETER_ACCESSORS(tuple, list)    \
+    BOOST_PP_IF(                                    \
+        BOOST_PP_LIST_IS_NIL(list),                 \
+        COMPUTE_PARAMETER_ACCESSORS_LIST_EMPTY,     \
+        COMPUTE_PARAMETER_ACCESSORS_LIST_NOT_EMPTY) \
+    (tuple, list)
+
+#define COMPUTE_PARAMETER_ACCESSORS_LIST_NOT_EMPTY(tuple, list)                          \
+    BOOST_PP_IF(                                                                         \
+        BOOST_PP_EQUAL(BOOST_PP_LIST_FIRST(list), METADATA_IS_PARAMETER_IN_SUPER_CLASS), \
+        COMPUTE_PARAMETER_ACCESSORS_IN_SUPER_CLASS,                                      \
+        COMPUTE_PARAMETER_ACCESSORS_REST_LIST)                                           \
+    (tuple, list)
+
+#define COMPUTE_PARAMETER_ACCESSORS_REST_LIST(tuple, list) \
+    COMPUTE_PARAMETER_ACCESSORS_FROM_SUB_LIST(tuple, BOOST_PP_LIST_REST(list))
+
+#define COMPUTE_PARAMETER_ACCESSORS_SUBLIST_NOT_EMPTY(tuple, list)                       \
+    BOOST_PP_IF(                                                                         \
+        BOOST_PP_EQUAL(BOOST_PP_LIST_FIRST(list), METADATA_IS_PARAMETER_IN_SUPER_CLASS), \
+        COMPUTE_PARAMETER_ACCESSORS_IN_SUPER_CLASS,                                      \
+        COMPUTE_PARAMETER_ACCESSORS_REST_LIST)                                           \
+    (tuple, list)
+
+#define COMPUTE_PARAMETER_ACCESSORS_FROM_SUB_LIST(tuple, list) \
+    BOOST_PP_IF(                                               \
+        BOOST_PP_LIST_IS_NIL(list),                            \
+        COMPUTE_PARAMETER_ACCESSORS_LIST_EMPTY,                \
+        COMPUTE_PARAMETER_ACCESSORS_SUBLIST_NOT_EMPTY)         \
+    (tuple, list)
+
+#define COMPUTE_PARAMETER_ACCESSORS_LIST_EMPTY(tuple, list) EXPAND_PARAMETER_ACCESSORS(tuple)
+
+#define COMPUTE_PARAMETER_ACCESSORS_IN_SUPER_CLASS(tuple, list) EXPAND_PARAMETER_SET_ACCESSORS_WITH_LISTENER(tuple)
+
+#define EXPAND_PARAMETER_ACCESSORS(tuple)                                        \
+    EXPAND_TUPLE_ELEMENT(0, tuple) & BOOST_PP_TUPLE_ELEM(1, tuple)()             \
+    {                                                                            \
+        return BOOST_PP_CAT(BOOST_PP_TUPLE_ELEM(1, tuple), _);                   \
+    }                                                                            \
+    const EXPAND_TUPLE_ELEMENT(0, tuple) & BOOST_PP_TUPLE_ELEM(1, tuple)() const \
+    {                                                                            \
+        return BOOST_PP_CAT(BOOST_PP_TUPLE_ELEM(1, tuple), _);                   \
+    }                                                                            \
+    EXPAND_PARAMETER_SET_ACCESSORS_WITH_LISTENER(tuple)
+
+#define STATIC_FIELDS_INIT(ObjectType)
+#define EXPAND_PARAMETER_SET_ACCESSORS_WITH_LISTENER(tuple)
+
+// Base macros
+#define EXPAND_TUPLE_ELEMENT(i, element) EXPAND_TUPLE(BOOST_PP_TUPLE_ELEM(i, element))
+
+#define EXPAND_TUPLE(tuple) EXPAND_LIST(BOOST_PP_TUPLE_TO_LIST(tuple))
+
+#define EXPAND_LIST(list) BOOST_PP_IF(BOOST_PP_LIST_IS_NIL(list), EXPAND_LIST_EMPTY, EXPAND_LIST_NOT_EMPTY)(list)
+
+#define EXPAND_LIST_EMPTY(list)
+
+#define EXPAND_LIST_NOT_EMPTY(list) BOOST_PP_LIST_FIRST(list) EXPAND_REST_LIST(BOOST_PP_LIST_REST(list))
+
+#define EXPAND_ELEMENT(r, data, elem) BOOST_PP_COMMA() elem
+
+namespace charlie::common::configuration
+{
+struct JsonCharlieDescriptor
+{
+#define JSON_CHARLIE_DESCRIPTOR_PARAMS ((std::map<std::string, std::string>), jsonRuns)
+
+    REFLECTABLE_PARAMETERS_DECL(JsonCharlieDescriptor, JSON_CHARLIE_DESCRIPTOR_PARAMS)
+}
+
+namespace charlie::common::configuration
+{
+REFLECTABLE_PARAMETERS_IMPL(JsonCharlieDescriptor, JSON_CHARLIE_DESCRIPTOR_PARAMS)
+} // namespace charlie::common::configuration
+
+g++ -E 
+
