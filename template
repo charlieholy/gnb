@@ -1,0 +1,34 @@
+#include <iostream>
+using namespace std;
+
+template<size_t>
+class A{};
+
+template<class,class,class>
+class Dep{};
+
+class core{};
+
+template<class core,size_t t>
+class Dep<core,A<t>,A<t+2>>{
+public:
+void foo(){cout << "+2" << endl;};
+};
+
+template<class core,size_t t>
+class Dep<core,A<t>,A<t+3>>{
+public:
+void foo(){cout << "+3" << endl;};
+};
+
+
+int main()
+{
+  Dep<core,A<3>,A<6>> dep; 
+  dep.foo();
+  cout << "end" << endl;
+  return 0;
+}
+
++3
+end
