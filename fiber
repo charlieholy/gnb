@@ -1,0 +1,1 @@
+g++ boost_1_75_0/libs/fiber/examples/simple.cpp -lboost_fiber -lboost_context
