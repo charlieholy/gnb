@@ -1,0 +1,58 @@
+C++ 为什么有时候必须额外写 template？ 
+template是用来消除歧义的. 观察下面的代码:  
+
+#include <iostream>
+using namespace std;
+
+template<class T>
+int f(T& x) {
+  return x.convert2<3>(4);
+}
+
+class A{
+public:
+  template<size_t num>
+  int convert2(size_t num2){return num+num2;};
+};
+
+int main()
+{
+  A a;
+  f<A>(a);
+  cout << "asd" << endl;
+  return 0;
+}
+
+////////////////////////////////////
+ g++ tmp.cpp -std=c++11
+tmp.cpp: In instantiation of ‘int f(T&) [with T = A]’:
+tmp.cpp:18:9:   required from here
+tmp.cpp:6:20: error: invalid operands of types ‘<unresolved overloaded function type>’ and ‘int’ to binary ‘operator<’
+   return x.convert2<3>(4);
+////////////////////////////////////////////////
+#include <iostream>
+using namespace std;
+
+template<class T>
+int f(T& x) {
+  return x.template convert2<3>(4);
+}
+
+class A{
+public:
+  template<size_t num>
+  int convert2(size_t num2){return num+num2;};
+};
+
+int main()
+{
+  A a;
+  auto res = f<A>(a);
+  cout << "res:" << res << endl;
+  return 0;
+}
+
+///////////////////////////////////////////////////
+res:7
+///////////////////////////////////////////////////
+
