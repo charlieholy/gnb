@@ -1,0 +1,248 @@
+#include <iostream>
+#include <complex>
+#include <ctime>
+#include <stdint.h>
+#include <iostream>
+#include <string>
+#include <sys/time.h>
+#include <array>
+#include <stdio.h>
+using namespace std;
+
+static inline int64_t getTimeNs()
+{
+    struct timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+    return ts.tv_sec*1000000000 + ts.tv_nsec;
+}
+
+template<typename T=float>
+using mycomplex = array<T,2>;
+
+template <size_t M = 0 /*row*/, size_t N = 0 /*col*/>
+using Matrix = array<array<mycomplex<>, N>, M>;
+
+constexpr size_t ELEM_LEN = 32;
+constexpr size_t ELEM_LEN_8 = 8;
+constexpr size_t ELEM_LEN_4 = 4;
+
+#define MULTI(ERES,E1,E2)  do{ERES[0]=E1[0]*E2[0]-E1[1]*E2[1];ERES[1]=E1[1]*E2[0]+E1[0]*E2[1];}while(0)
+#define MATRIX_DOT(MRES,M1,M2,II,JJ,KK) do{ \
+   for (int i = 0; i < II; i++) \
+   { \
+       for (int j = 0; j < JJ; j++) \
+       { \
+           for (int k = 0; k < KK; k++) \
+           { \
+                MRES[i][j][0] +=  (M1[i][k][0]*M2[k][j][0] - M1[i][k][1]*M2[k][j][1]); \
+                MRES[i][j][1] +=  (M1[i][k][1]*M2[k][j][0] + M1[i][k][0]*M2[k][j][1]); \
+           } \
+       } \
+   } \
+}while(0)
+#define MATRIX_AVG(MRES,M1,M2,II,JJ) do{ \
+   for (int i = 0; i < II; i++) \
+   { \
+       for (int j = 0; j < JJ; j++) \
+       { \
+            MRES[i][j][0] =  ((M1[i][j][0]+M2[i][j][0])/2);  \
+            MRES[i][j][1] =  ((M1[i][j][1]+M2[i][j][1])/2);  \
+       } \
+   } \
+}while(0)
+#define DUMP_OUT(NOTICE,NS,MRES) do{cout << NOTICE <<":"  << MRES[0][0][0] << " " << MRES[0][0][1] << " cost: " << NS << "ns " << endl;}while(0)
+
+int main()
+{
+    {
+        Matrix<1, ELEM_LEN> m1;
+        Matrix<ELEM_LEN, ELEM_LEN> m2;
+        Matrix<ELEM_LEN,1> m3;
+        for(int i=0;i<ELEM_LEN;i++)
+        {
+            m1[0][i] = {0.7071,0.7072};
+            m3[i][0] = {0.7073,0.7074};
+            for(int j=0;j<ELEM_LEN;j++)
+            {
+                m2[i][j] = {0.7072,0.7073};
+            }
+        }
+
+        complex<float> c1(0.7071,0.7072);
+        complex<float> c2(0.7073,0.7074);
+        complex<float> res;
+        res = c1*c2;
+        cout << res << endl;
+
+        mycomplex<> myc1 = {0.7071,0.7072};
+        mycomplex<> myc2 = {0.7073,0.7074};
+        mycomplex<> myres = {0,0};
+        MULTI(myres,myc1,myc2);
+        cout << myres[0] << " " << myres[1] << endl;
+
+        //calc  (1x32) * (32x32) *(32x1) loop 1 times
+        {
+            Matrix<1, ELEM_LEN> m12;
+            Matrix<1, 1> m23;
+            auto B = getTimeNs();
+            MATRIX_DOT(m12,m1,m2,1,ELEM_LEN,ELEM_LEN);
+            MATRIX_DOT(m23,m12,m3,1,1,ELEM_LEN);
+            auto A = getTimeNs();
+            DUMP_OUT("(1x32) * (32x32) *(32x1) loop 1 times",A-B,m23);
+        }
+        //calc  (1x32) * (32x32) *(32x1) loop 32 times
+        {
+            Matrix<1, ELEM_LEN> m12;
+            Matrix<1, 1> m23;
+            auto B = getTimeNs();
+            for(int i=0;i<ELEM_LEN;i++)
+            {
+                MATRIX_DOT(m12,m1,m2,1,ELEM_LEN,ELEM_LEN);
+                MATRIX_DOT(m23,m12,m3,1,1,ELEM_LEN);
+            }
+            auto A = getTimeNs();
+            DUMP_OUT("(1x32) * (32x32) *(32x1) loop 32 times",A-B,m23);
+            
+        }
+    }
+    {
+        Matrix<1, ELEM_LEN_8> m1;
+        Matrix<ELEM_LEN_8, ELEM_LEN_8> m2;
+        Matrix<ELEM_LEN_8,1> m3;
+        for(int i=0;i<ELEM_LEN_8;i++)
+        {
+            m1[0][i] = {0.7071,0.7072};
+            m3[i][0] = {0.7073,0.7074};
+            for(int j=0;j<ELEM_LEN_8;j++)
+            {
+                m2[i][j] = {0.7072,0.7073};
+            }
+        }
+        //(1x8) * (8x8) *(8x1) loop 1 times
+        {
+            Matrix<1, ELEM_LEN_8> m12;
+            Matrix<1, 1> m23;
+            auto B = getTimeNs();
+            MATRIX_DOT(m12,m1,m2,1,ELEM_LEN_8,ELEM_LEN_8);
+            MATRIX_DOT(m23,m12,m3,1,1,ELEM_LEN_8);
+            auto A = getTimeNs();
+            DUMP_OUT("(1x8) * (8x8) *(8x1) loop 1 times",A-B,m23);
+        }
+        //(1x8) * (8x8) *(8x1) loop 32 times
+        {
+            Matrix<1, ELEM_LEN_8> m12;
+            Matrix<1, 1> m23;
+            auto B = getTimeNs();
+            for(int i=0;i<ELEM_LEN;i++)
+            {
+                MATRIX_DOT(m12,m1,m2,1,ELEM_LEN_8,ELEM_LEN_8);
+                MATRIX_DOT(m23,m12,m3,1,1,ELEM_LEN_8);
+            }
+            auto A = getTimeNs();
+            DUMP_OUT("(1x8) * (8x8) *(8x1) loop 32 times:",A-B,m23);
+        }
+    }
+    {
+        Matrix<1, ELEM_LEN_4> m1;
+        Matrix<ELEM_LEN_4, ELEM_LEN_4> m2;
+        Matrix<ELEM_LEN_4,1> m3;
+        for(int i=0;i<ELEM_LEN_4;i++)
+        {
+            m1[0][i] = {0.7071,0.7072};
+            m3[i][0] = {0.7073,0.7074};
+            for(int j=0;j<ELEM_LEN_4;j++)
+            {
+                m2[i][j] = {0.7072,0.7073};
+            }
+        }
+        //(1x4) * (4x4) *(4x1) loop 1 times
+        {
+            Matrix<1, ELEM_LEN_4> m12;
+            Matrix<1, 1> m23;
+            auto B = getTimeNs();
+            MATRIX_DOT(m12,m1,m2,1,ELEM_LEN_4,ELEM_LEN_4);
+            MATRIX_DOT(m23,m12,m3,1,1,ELEM_LEN_4);
+            auto A = getTimeNs();
+            DUMP_OUT("(1x4) * (4x4) *(4x1) loop 1 times:",A-B,m23);
+        }
+        //(1x4) * (4x4) *(4x1) loop 8 times
+        {
+            Matrix<1, ELEM_LEN_4> m12;
+            Matrix<1, 1> m23;
+            auto B = getTimeNs();
+            for(int i=0;i<ELEM_LEN_8;i++)
+            {
+                MATRIX_DOT(m12,m1,m2,1,ELEM_LEN_4,ELEM_LEN_4);
+                MATRIX_DOT(m23,m12,m3,1,1,ELEM_LEN_4);
+            }
+            auto A = getTimeNs();
+            DUMP_OUT("(1x4) * (4x4) *(4x1) loop 8 times:",A-B,m23);
+        }
+    }
+    // ((8x8)+ (8x8))/2
+    {
+        Matrix<ELEM_LEN_8, ELEM_LEN_8> m1;
+        Matrix<ELEM_LEN_8, ELEM_LEN_8> m2;
+        Matrix<ELEM_LEN_8, ELEM_LEN_8> m3;
+        for(int i=0;i<ELEM_LEN_8;i++)
+        {
+            for(int j=0;j<ELEM_LEN_8;j++)
+            {
+                m1[i][j] = {0.7072,0.7073};
+                m2[i][j] = {0.7073,0.7074};
+            }
+        }
+        {
+            auto B = getTimeNs();
+            MATRIX_AVG(m3,m1,m2,ELEM_LEN_8,ELEM_LEN_8);
+            auto A = getTimeNs();
+            DUMP_OUT("((8x8)+ (8x8))/2 1times:",A-B,m3);
+        }
+        {
+            auto B = getTimeNs();
+            for(int i=0;i<10;i++)
+            {
+                MATRIX_AVG(m3,m1,m2,ELEM_LEN_8,ELEM_LEN_8);
+            }
+            auto A = getTimeNs();
+            DUMP_OUT("((8x8)+ (8x8))/2 10times:",A-B,m3);
+        }
+    }
+    {
+        Matrix<ELEM_LEN_4, ELEM_LEN_4> m1;
+        Matrix<ELEM_LEN_4, ELEM_LEN_4> m2;
+        Matrix<ELEM_LEN_4, ELEM_LEN_4> m3;
+        for(int i=0;i<ELEM_LEN_4;i++)
+        {
+            for(int j=0;j<ELEM_LEN_4;j++)
+            {
+                m1[i][j] = {0.7072,0.7073};
+                m2[i][j] = {0.7073,0.7074};
+            }
+        }
+        {
+            auto B = getTimeNs();
+            MATRIX_AVG(m3,m1,m2,ELEM_LEN_4,ELEM_LEN_4);
+            auto A = getTimeNs();
+            DUMP_OUT("((4x4)+ (4x4))/2 1times:",A-B,m3);
+        }
+        {
+            auto B = getTimeNs();
+            for(int i=0;i<10;i++)
+            {
+                MATRIX_AVG(m3,m1,m2,ELEM_LEN_4,ELEM_LEN_4);
+            }
+            auto A = getTimeNs();
+            DUMP_OUT("((4x4)+ (4x4))/2 10times:",A-B,m3);
+        }
+    }
+
+
+
+    
+
+
+
+
+}
+
