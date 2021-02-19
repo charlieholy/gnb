@@ -1,0 +1,33 @@
+#include <iostream>
+#include "sigslot.h"
+using namespace std;
+
+class A : public sigslot::has_slots<>{
+public:
+	void foo(){
+	   cout << "foo..." << endl;
+	}
+
+	void foo(int a)
+	{
+		cout << a << endl;
+	}
+};
+
+int main()
+{
+	cout << "asd" << endl;
+	A a;
+	a.foo();
+
+	sigslot::signal<int> Clicked;
+	Clicked.connect(&a,&A::foo);
+	Clicked(2);
+
+  return 0;
+}
+
+
+asd
+foo...
+2
