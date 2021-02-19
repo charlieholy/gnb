@@ -13,21 +13,34 @@ constexpr int POW2_15 = 1<<15;
 #define FLOAT_Q15_UNSIGNED(FLOAT) ((int)abs(FLOAT*POW2_15))
 #define FLOAT_Q15(FLOAT) (FLOAT_Q15_UNSIGNED(FLOAT)+Q15_SIGN(FLOAT))
 
+#ifdef MYTEST
 int main()
 { 
-    int Q15 = 0x8234C678;
+    {
+        int Q15 = 0x8234C678;
 
-    cout << POW2_15 << endl;
+        cout << POW2_15 << endl;
 
-    float r_f = Q15_FLOAT_R(Q15);
-    float i_f = Q15_FLOAT_I(Q15);
+        float r_f = Q15_FLOAT_R(Q15);
+        float i_f = Q15_FLOAT_I(Q15);
 
-    cout << r_f << endl;
-    cout << i_f << endl;
+        cout << r_f << endl;
+        cout << i_f << endl;
 
-    cout << hex << FLOAT_Q15(r_f) << endl;
-    cout << hex << FLOAT_Q15(i_f) << endl;
-    cout << hex << Q15 << endl;
+        cout << hex << FLOAT_Q15(r_f) << endl;
+        cout << hex << FLOAT_Q15(i_f) << endl;
+        cout << hex << Q15 << endl;
+    }
+    {
+        float r_f = 0.7072;
+        float i_f = 0.7073;
+        cout << hex << FLOAT_Q15(r_f) << endl;
+        cout << hex << FLOAT_Q15(i_f) << endl;
 
+        cout <<  Q15_FLOAT(FLOAT_Q15(r_f)) << endl;
+        cout <<  Q15_FLOAT(FLOAT_Q15(i_f)) << endl;
+
+    }
     return 0;
 }
+#endif
