@@ -1,0 +1,33 @@
+#include <iostream>
+using namespace std;
+
+constexpr int POW2_15 = 1<<15;
+#define Q15_REAL(Q15) (Q15>>16&0xffff)
+#define Q15_IMAG(Q15) (Q15&0xffff)
+#define Q15_UNSIGNED_FLOAT(Q15) ((float)(Q15&0x7fff)/POW2_15)
+#define Q15_FLOAT(Q15) ((Q15>>15)?-Q15_UNSIGNED_FLOAT(Q15):Q15_UNSIGNED_FLOAT(Q15))
+#define Q15_FLOAT_R(Q15) (Q15_FLOAT(Q15_REAL(Q15)))
+#define Q15_FLOAT_I(Q15) (Q15_FLOAT(Q15_IMAG(Q15)))
+
+#define Q15_SIGN(FLOAT) (FLOAT<0?POW2_15:0)
+#define FLOAT_Q15_UNSIGNED(FLOAT) ((int)abs(FLOAT*POW2_15))
+#define FLOAT_Q15(FLOAT) (FLOAT_Q15_UNSIGNED(FLOAT)+Q15_SIGN(FLOAT))
+
+int main()
+{ 
+    int Q15 = 0x8234C678;
+
+    cout << POW2_15 << endl;
+
+    float r_f = Q15_FLOAT_R(Q15);
+    float i_f = Q15_FLOAT_I(Q15);
+
+    cout << r_f << endl;
+    cout << i_f << endl;
+
+    cout << hex << FLOAT_Q15(r_f) << endl;
+    cout << hex << FLOAT_Q15(i_f) << endl;
+    cout << hex << Q15 << endl;
+
+    return 0;
+}
