@@ -1,0 +1,21 @@
+#include <iostream>
+#include <exception>
+using namespace std;
+
+void foo()
+{
+    throw runtime_error("foo...");
+}
+
+int main()
+{
+    try{
+        foo();
+        cout << "asd" << endl;
+
+    }catch(exception& e){
+        cout << e.what() << endl;
+    };
+    cout << "asd " << endl;
+    return 0;
+}
