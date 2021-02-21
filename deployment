@@ -35,21 +35,22 @@ int main()
 }
 
 //////////////////////////
-
-
 #include <iostream>
 using namespace std;
+
+template<int t>
+class A{};
 
 template <class...>
 class Core;
 
 template<int id>
-class Core<array<int,id>>
+class Core<A<id>>
 {
 public:
-	Core(int )
+	Core()
 	{
-	  cout << "core" << endl;
+	  cout << "core:" << id << endl;
 	}
 
 };
@@ -57,20 +58,17 @@ public:
 template<class... Ids>
 struct Dep
 {
-   template<class... Args>
-   static void apply(Args&&... args)
+   static void apply()
    {
       cout << "apply" << endl;
-      auto cores = make_tuple(Core<Ids>(3)...);
+      auto cores = make_tuple(Core<Ids>()...);
    } 
 };
 
 int main()
 {
   cout << "main" << endl;
-  
-  Dep<array<int,2>,array<int,3>>::apply(2);
-
+  Dep<A<2>,A<3>>::apply();
   return 0;
 }
 
