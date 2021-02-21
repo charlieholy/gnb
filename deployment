@@ -52,8 +52,18 @@ public:
 	{
 	  cout << "core:" << id << endl;
 	}
-
 };
+
+template<>
+class Core<A<2>>
+{
+public:
+	Core()
+	{
+	  cout << "core2:"  << endl;
+	}
+};
+
 
 template<class... Ids>
 struct Dep
@@ -68,7 +78,6 @@ struct Dep
 int main()
 {
   cout << "main" << endl;
-  Dep<A<2>,A<3>>::apply();
+  Dep<A<2>,A<3>,A<4>,A<5>>::apply();
   return 0;
 }
-
