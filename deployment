@@ -1,0 +1,35 @@
+#include <iostream>
+using namespace std;
+
+template <class...>
+class Core;
+
+template<int id>
+class Core<array<int,id>>
+{
+public:
+	Core()
+	{
+	  cout << "core" << endl;
+	}
+
+};
+
+template<class... Ids>
+struct Dep
+{
+   static void apply()
+   {
+      cout << "apply" << endl;
+      Core<array<int,2>> core;
+   } 
+};
+
+int main()
+{
+  cout << "main" << endl;
+  
+  Dep<int>::apply();
+
+  return 0;
+}
