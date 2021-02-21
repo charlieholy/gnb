@@ -33,3 +33,44 @@ int main()
 
   return 0;
 }
+
+//////////////////////////
+
+
+#include <iostream>
+using namespace std;
+
+template <class...>
+class Core;
+
+template<int id>
+class Core<array<int,id>>
+{
+public:
+	Core(int )
+	{
+	  cout << "core" << endl;
+	}
+
+};
+
+template<class... Ids>
+struct Dep
+{
+   template<class... Args>
+   static void apply(Args&&... args)
+   {
+      cout << "apply" << endl;
+      auto cores = make_tuple(Core<Ids>(3)...);
+   } 
+};
+
+int main()
+{
+  cout << "main" << endl;
+  
+  Dep<array<int,2>,array<int,3>>::apply(2);
+
+  return 0;
+}
+
