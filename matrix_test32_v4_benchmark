@@ -1,0 +1,291 @@
+#include <iostream>
+#include <ctime>
+#include <stdint.h>
+#include <iostream>
+#include <string>
+#include <sys/time.h>
+#include <array>
+#include <stdio.h>
+#include <benchmark/benchmark.h>
+using namespace std;
+
+static inline int64_t getTimeNs()
+{
+    struct timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+    return ts.tv_sec * 1000000000 + ts.tv_nsec;
+}
+
+constexpr int POW2_15 = 1 << 15;
+#define Q15_REAL(Q15) (Q15 >> 16 & 0xffff)
+#define Q15_IMAG(Q15) (Q15 & 0xffff)
+#define Q15_UNSIGNED_FLOAT(Q15) ((float)(Q15 & 0x7fff) / POW2_15)
+#define Q15_FLOAT(Q15) ((Q15 >> 15) ? -Q15_UNSIGNED_FLOAT(Q15) : Q15_UNSIGNED_FLOAT(Q15))
+#define Q15_FLOAT_R(Q15) (Q15_FLOAT(Q15_REAL(Q15)))
+#define Q15_FLOAT_I(Q15) (Q15_FLOAT(Q15_IMAG(Q15)))
+
+#define Q15_SIGN(FLOAT) (FLOAT < 0 ? POW2_15 : 0)
+#define FLOAT_Q15_UNSIGNED(FLOAT) ((int)abs(FLOAT * POW2_15))
+#define FLOAT_Q15(FLOAT) (FLOAT_Q15_UNSIGNED(FLOAT) + Q15_SIGN(FLOAT))
+
+template <typename T = float>
+using mycomplex = array<T, 2>;
+
+template <int M = 0 /*row*/, int N = 0 /*col*/>
+using Matrix = array<array<mycomplex<>, N>, M>;
+
+constexpr int ELEM_LEN = 32;
+constexpr int ELEM_LEN_8 = 8;
+constexpr int ELEM_LEN_4 = 4;
+
+#define MULTI(ERES, E1, E2)                      \
+    do                                           \
+    {                                            \
+        ERES[0] = E1[0] * E2[0] - E1[1] * E2[1]; \
+        ERES[1] = E1[1] * E2[0] + E1[0] * E2[1]; \
+    } while (0)
+#define MATRIX_DOT(MRES, M1, M2, II, JJ, KK)                                                  \
+    do                                                                                        \
+    {                                                                                         \
+        for (int i = 0; i < II; i++)                                                          \
+        {                                                                                     \
+            for (int j = 0; j < JJ; j++)                                                      \
+            {                                                                                 \
+                for (int k = 0; k < KK; k++)                                                  \
+                {                                                                             \
+                    MRES[i][j][0] += (M1[i][k][0] * M2[k][j][0] - M1[i][k][1] * M2[k][j][1]); \
+                    MRES[i][j][1] += (M1[i][k][1] * M2[k][j][0] + M1[i][k][0] * M2[k][j][1]); \
+                }                                                                             \
+            }                                                                                 \
+        }                                                                                     \
+    } while (0)
+#define MATRIX_AVG(MRES, M1, M2, II, JJ)                           \
+    do                                                             \
+    {                                                              \
+        for (int i = 0; i < II; i++)                               \
+        {                                                          \
+            for (int j = 0; j < JJ; j++)                           \
+            {                                                      \
+                MRES[i][j][0] = ((M1[i][j][0] + M2[i][j][0]) / 2); \
+                MRES[i][j][1] = ((M1[i][j][1] + M2[i][j][1]) / 2); \
+            }                                                      \
+        }                                                          \
+    } while (0)
+#define DUMP_OUT(NOTICE, NS, MRES)                                                                             \
+    do                                                                                                         \
+    {                                                                                                          \
+        cout << NOTICE << ": cost: " << NS << "ns  [" << MRES[0][0][0] << " " << MRES[0][0][1] << "]" << endl; \
+    } while (0)
+#define DUMP_OUT2(NOTICE, MRES)                                                         \
+    do                                                                                  \
+    {                                                                                   \
+        cout << NOTICE << " [" << MRES[0][0][0] << " " << MRES[0][0][1] << "]" << endl; \
+    } while (0)
+
+static void Case1_Matrix32(benchmark::State &state)
+{
+    // Perform setup here
+    float random = (float)(getTimeNs() % 10);
+    float num71 = 0.7071 + random;
+    random = (float)(getTimeNs() % 10);
+    float num72 = 0.7072 + random;
+    random = (float)(getTimeNs() % 10);
+    float num73 = 0.7073 + random;
+    random = (float)(getTimeNs() % 10);
+    float num74 = 0.7074 + random;
+
+    int size = state.range(0);
+
+    Matrix<1, ELEM_LEN> m1;
+    Matrix<ELEM_LEN, ELEM_LEN> m2;
+    Matrix<ELEM_LEN, 1> m3;
+    for (auto i = 0; i < ELEM_LEN; i++)
+    {
+        m1[0][i] = {num71, num72};
+        m3[i][0] = {num73, num74};
+        for (auto j = 0; j < ELEM_LEN; j++)
+        {
+            m2[i][j] = {num72, num73};
+        }
+    }
+    Matrix<1, ELEM_LEN> m12{};
+    Matrix<1, 1> m23 = {};
+
+    for (auto _ : state)
+    {
+        for (int t = 0; t < size; t++)
+        {
+            MATRIX_DOT(m12, m1, m2, 1, ELEM_LEN, ELEM_LEN);
+            MATRIX_DOT(m23, m12, m3, 1, 1, ELEM_LEN);
+        }
+    }
+}
+
+static void Case2_Matrix8(benchmark::State &state)
+{
+    // Perform setup here
+    float random = (float)(getTimeNs() % 10);
+    float num71 = 0.7071 + random;
+    random = (float)(getTimeNs() % 10);
+    float num72 = 0.7072 + random;
+    random = (float)(getTimeNs() % 10);
+    float num73 = 0.7073 + random;
+    random = (float)(getTimeNs() % 10);
+    float num74 = 0.7074 + random;
+
+    int size = state.range(0);
+
+    Matrix<1, ELEM_LEN_8> m1;
+    Matrix<ELEM_LEN_8, ELEM_LEN_8> m2;
+    Matrix<ELEM_LEN_8, 1> m3;
+    for (auto i = 0; i < ELEM_LEN_8; i++)
+    {
+        m1[0][i] = {num71, num72};
+        m3[i][0] = {num73, num74};
+        for (auto j = 0; j < ELEM_LEN_8; j++)
+        {
+            m2[i][j] = {num72, num73};
+        }
+    }
+    Matrix<1, ELEM_LEN_8> m12{};
+    Matrix<1, 1> m23 = {};
+
+    for (auto _ : state)
+    {
+        for (auto t = 0; t < size; t++)
+        {
+            MATRIX_DOT(m12, m1, m2, 1, ELEM_LEN_8, ELEM_LEN_8);
+            MATRIX_DOT(m23, m12, m3, 1, 1, ELEM_LEN_8);
+        }
+    }
+}
+
+static void Case2_Matrix4(benchmark::State &state)
+{
+    // Perform setup here
+    // Perform setup here
+    float random = (float)(getTimeNs() % 10);
+    float num71 = 0.7071 + random;
+    random = (float)(getTimeNs() % 10);
+    float num72 = 0.7072 + random;
+    random = (float)(getTimeNs() % 10);
+    float num73 = 0.7073 + random;
+    random = (float)(getTimeNs() % 10);
+    float num74 = 0.7074 + random;
+
+    int size = state.range(0);
+
+    Matrix<1, ELEM_LEN_4> m1;
+    Matrix<ELEM_LEN_4, ELEM_LEN_4> m2;
+    Matrix<ELEM_LEN_4, 1> m3;
+    for (auto i = 0; i < ELEM_LEN_4; i++)
+    {
+        m1[0][i] = {num71, num72};
+        m3[i][0] = {num73, num74};
+        for (auto j = 0; j < ELEM_LEN_4; j++)
+        {
+            m2[i][j] = {num72, num73};
+        }
+    }
+    Matrix<1, ELEM_LEN_4> m12{};
+    Matrix<1, 1> m23 = {};
+
+    for (auto _ : state)
+    {
+        for (auto t = 0; t < size; t++)
+        {
+            MATRIX_DOT(m12, m1, m2, 1, ELEM_LEN_4, ELEM_LEN_4);
+            MATRIX_DOT(m23, m12, m3, 1, 1, ELEM_LEN_4);
+        }
+    }
+}
+
+static void Case3(benchmark::State &state)
+{
+    int size = state.range(0);
+    int num = 0x5a85a88;
+    Matrix<ELEM_LEN_8, ELEM_LEN_8> m1 = {};
+
+    for (auto _ : state)
+    {
+        for (auto t = 0; t < size; t++)
+        {
+
+            for (int i = 0; i < ELEM_LEN_8; i++)
+            {
+                for (int j = 0; j < ELEM_LEN_8; j++)
+                {
+                    m1[i][j][0] = Q15_FLOAT_R(num) * 2;
+                    m1[i][j][1] = Q15_FLOAT_I(num) * 2;
+                }
+            }
+        }
+    }
+}
+
+static void Case4(benchmark::State &state)
+{
+    int size = state.range(0);
+    float random = (float)(getTimeNs() % 10);
+    float num72 = 0.7072 + random;
+    random = (float)(getTimeNs() % 10);
+    float num73 = 0.7073 + random;
+    random = (float)(getTimeNs() % 10);
+    float num74 = 0.7074 + random;
+    Matrix<ELEM_LEN_8, ELEM_LEN_8> m1 = {};
+    Matrix<ELEM_LEN_8, ELEM_LEN_8> m2 = {};
+    Matrix<ELEM_LEN_8, ELEM_LEN_8> m3 = {};
+    for (int i = 0; i < ELEM_LEN_8; i++)
+    {
+        for (int j = 0; j < ELEM_LEN_8; j++)
+        {
+            m1[i][j] = {num72, num73};
+            m2[i][j] = {num73, num74};
+        }
+    }
+    for (auto _ : state)
+    {
+        for (auto t = 0; t < size; t++)
+        {
+            MATRIX_AVG(m3, m1, m2, ELEM_LEN_8, ELEM_LEN_8);
+        }
+    }
+}
+
+static void Case5(benchmark::State &state)
+{
+    int size = state.range(0);
+    float random = (float)(getTimeNs() % 10);
+    float num71 = 0.7071 + random;
+    random = (float)(getTimeNs() % 10);
+    float num72 = 0.7072 + random;
+    random = (float)(getTimeNs() % 10);
+    float num73 = 0.7073 + random;
+    random = (float)(getTimeNs() % 10);
+    float num74 = 0.7074 + random;
+
+    Matrix<1, ELEM_LEN> m1 = {};
+    Matrix<ELEM_LEN, 1> m2 = {};
+    Matrix<1, 1> m3 = {};
+    for (auto i = 0; i < ELEM_LEN; i++)
+    {
+        m1[0][i] = {num71, num72};
+        m2[i][0] = {num73, num74};
+    }
+    for (auto _ : state)
+    {
+        for (auto t = 0; t < size; t++)
+        {
+            MATRIX_DOT(m3, m1, m2, 1, 32, 1);
+        }
+    }
+}
+
+BENCHMARK(Case1_Matrix32)->Arg(1)->Arg(32);
+BENCHMARK(Case2_Matrix8)->Arg(1)->Arg(32);
+BENCHMARK(Case2_Matrix4)->Iterations(100)->Arg(1)->Arg(4);
+BENCHMARK(Case3)->Iterations(100)->Arg(1)->Arg(10);
+BENCHMARK(Case4)->Iterations(100)->Arg(1)->Arg(10);
+BENCHMARK(Case5)->Arg(1)->Arg(32);
+
+BENCHMARK_MAIN();
