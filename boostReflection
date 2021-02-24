@@ -325,5 +325,5 @@ namespace charlie::common::configuration
 REFLECTABLE_PARAMETERS_IMPL(JsonCharlieDescriptor, JSON_CHARLIE_DESCRIPTOR_PARAMS)
 } // namespace charlie::common::configuration
 
-g++ -E 
+g++ -E $1 -I./sdkuplane/prefix-root-list/asik-x86_64-ps_lfs-gcc9/toolchain/sysroots/core2-64-pc-linux-gnu/usr/include/
 
