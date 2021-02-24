@@ -1,0 +1,21 @@
+#include <iostream>
+#include <memory>
+#include <utility>
+using namespace std;
+
+class A{
+public:
+        void foo(){cout << "foo" << endl;};
+};
+
+void foo(A& a){a.foo();};
+
+int main()
+{
+  foo(*std::make_unique<A>());
+  A c = *std::make_unique<A>();
+  cout << "asd" << endl;
+  return 0;
+}
+
+g++ $1 -std=c++14
