@@ -1,0 +1,45 @@
+result not as expect.......
+
+#include <iostream>
+using namespace std;
+
+static int count = 0;
+using MessageId=int;
+
+template<int... routeIds>
+class Route{
+public:
+
+
+static constexpr int route(int msgId)
+{
+   if(count++ == 5)exit(0);
+   constexpr int id = unpackFirstId<routeIds...>();
+   cout << id << endl;
+   if(id == msgId)
+{
+  cout << "same.." << endl;
+  exit(0);
+}
+   return sf<routeIds...>(msgId);
+}
+
+template<int... remainingIds>
+static int sf(int msgId)
+{
+   return Route<remainingIds...>::route(msgId);
+}
+
+ template <MessageId firstId, MessageId... remainingIds>
+    static constexpr MessageId unpackFirstId()
+    {
+        return firstId;
+    }
+
+};
+constexpr Route<1,2,3> r;
+int main()
+{
+  r.route(2);
+  return 0;
+}
