@@ -1,45 +1,129 @@
-result not as expect.......
-
 #include <iostream>
 using namespace std;
+#define TESTABLE(CLASS_NAME) CLASS_NAME
 
-static int count = 0;
-using MessageId=int;
 
-template<int... routeIds>
-class Route{
+namespace l2ps
+{
+namespace pscommon
+{
+namespace em
+{
+using MessageId = unsigned int;
+
+template <MessageId msgId>
+struct Id
+{
+    static constexpr MessageId value = msgId;
+};
+
+template <MessageId... routeIds>
+class Routes
+{
 public:
+    template <typename Event, typename MessageHandler>
+    static constexpr bool route(MessageId msgId, const Event& event, MessageHandler& handler)
+    {
+        constexpr MessageId currentId = unpackFirstId<routeIds...>();
+        cout << currentId << endl;
+        if (currentId == msgId)
+        {
+            //return handler.handle(Id<currentId>{}, event);
+            cout << "same" << endl;
+        }
+        return searchFurther<Event, MessageHandler, routeIds...>(msgId, event, handler);
+    }
 
+private:
+    template <typename Event, typename MessageHandler, MessageId skippedId, MessageId... remainingIds>
+    static constexpr bool searchFurther(MessageId msgId, const Event& event, MessageHandler& handler)
+    {
+        return Routes<remainingIds...>::route(msgId, event, handler);
+    }
 
-static constexpr int route(int msgId)
-{
-   if(count++ == 5)exit(0);
-   constexpr int id = unpackFirstId<routeIds...>();
-   cout << id << endl;
-   if(id == msgId)
-{
-  cout << "same.." << endl;
-  exit(0);
-}
-   return sf<routeIds...>(msgId);
-}
-
-template<int... remainingIds>
-static int sf(int msgId)
-{
-   return Route<remainingIds...>::route(msgId);
-}
-
- template <MessageId firstId, MessageId... remainingIds>
+    template <MessageId firstId, MessageId... remainingIds>
     static constexpr MessageId unpackFirstId()
     {
         return firstId;
     }
-
 };
-constexpr Route<1,2,3> r;
+
+template <>
+struct Routes<>
+{
+    template <typename Event, typename MessageHandler>
+    static constexpr bool route(MessageId msgId, const Event& event, MessageHandler& handler)
+    {
+        //handler.handleNotRoutableId(msgId, event);
+        cout << "route end ..." << endl;
+        return false;
+    }
+};
+
+} // namespace em
+} // namespace pscommon
+} // namespace l2ps
+
+
 int main()
 {
-  r.route(2);
-  return 0;
+    std::string s;
+    l2ps::pscommon::em::Routes<1,2,3>::route(2,0,s);
+    return 0;
 }
+
+
+/////////////////////////////
+#include <iostream>
+using namespace std;
+
+static int count = 0;
+using MessageId = int;
+
+template <int... routeIds>
+class Route
+{
+public:
+   static constexpr void route(int msgId)
+   {
+      constexpr int id = unpackFirstId<routeIds...>();
+      cout << id << endl;
+      if (id == msgId)
+      {
+         cout << "same.." << endl;
+      }
+      sf<routeIds...>(msgId);
+   }
+
+   template <int skippedId, int... remainingIds>
+   static void sf(int msgId)
+   {
+      Route<remainingIds...>::route(msgId);
+   }
+
+   template <MessageId firstId, MessageId... remainingIds>
+   static constexpr MessageId unpackFirstId()
+   {
+      return firstId;
+   }
+};
+
+template <>
+struct Route<>
+{
+
+   static constexpr void route(MessageId msgId)
+   {
+      //handler.handleNotRoutableId(msgId, event);
+      //return false;
+   }
+};
+
+constexpr Route<1, 2, 3> r;
+int main()
+{
+   r.route(2);
+   return 0;
+}
+//////////////
+the key word skippedId   let the args go to next....
