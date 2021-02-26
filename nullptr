@@ -1,0 +1,60 @@
+#include <iostream>
+using namespace std;
+
+class A{
+public:
+	virtual void foo(){cout << "A..." <<  endl;}
+};
+#if 0
+class SA
+{
+public:
+	void foo(){cout << "SA" << endl;}
+	template<class U,class...Args>
+	void cons(U* p,Args&&...args)
+	{
+	  ::new (p) U(std::forward<Args>(args)...);
+	  cout << "cons" << endl;
+	}
+
+};
+#endif
+int main()
+{
+  int k = 3;
+  int* a; //a的地址 &a
+  a = &k; //a的内容是K的地址
+  *a = 4; //*a是地址K上的内容
+  A* b ;
+  cout << a << " " << &a <<  " " << k  << " " << b << endl;
+  b->foo(); 
+  cout << b << endl;
+  return 0;
+}
+
+case1:
+这段代码的结果是Segmentation fault (core dumped)
+foo 方法是virtual
+p->foo() 对应 p->vtbl->foo()
+case2:
+结果是ok的
+将virtual去除
+在编译期间 A::foo的地址已经确定 编译器会翻译成_A_foo(A* this);
+因为b是野指针_A_foo(nullptr);
+case3:
+这段代码的结果是ok的
+
+0x7ffcffe8b194 0x7ffcffe8b198 4 0x400ae0
+A...1447122753
+0x400ae0
+
+case4:
+这段代码的结果是Segmentation fault (core dumped)
+A* b  = nullptr;
+foo里面使用成员变量c1  那么就成了nullptr->c1
+
+
+
+
+
+
