@@ -1,0 +1,43 @@
+#include <iostream>
+using namespace std;
+
+class A{
+public:
+	virtual void foo(){cout << "A..." << a << endl;}
+private:
+	int a;
+};
+#if 1
+class SA
+{
+public:
+	void foo(){cout << "SA" << endl;}
+	template<class U,class...Args>
+	void cons(U* p,Args&&...args)
+	{
+	  ::new (p) U(std::forward<Args>(args)...);
+	  cout << "cons" << endl;
+	}
+
+};
+#endif
+int main()
+{
+  A* b = nullptr;
+ // {
+  char buf[1024];
+  //SA().cons((A*)buf);
+  ::new(buf)A();
+  b = (A*)buf;
+ // }
+  char buf2[1024] = "asd";
+  b->foo(); 
+  return 0;
+}
+
+case1:
+栈上申请内存ok
+case2:
+将注释的括号加上 将buf2注释  也是ok的；
+case3
+将注释的括号加上 将buf2加上 栈结构重新分配给buf2后 导致buf的内存被覆盖 Segmentation fault (core dumped)
