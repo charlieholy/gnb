@@ -64,3 +64,5 @@ int main(int argc, char* argv[])
 
 ///////////////////
 g++ wuv.cpp -std=c++17 -lpthread
+///////////////////
+如果把上面代码的第45行注释掉，输出结果：
