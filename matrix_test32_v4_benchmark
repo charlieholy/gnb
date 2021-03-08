@@ -26,7 +26,7 @@ constexpr int POW2_15 = 1 << 15;
 
 #define Q15_SIGN(FLOAT) (FLOAT < 0 ? POW2_15 : 0)
 #define FLOAT_Q15_UNSIGNED(FLOAT) ((int)abs(FLOAT * POW2_15))
-#define FLOAT_Q15(FLOAT) (FLOAT_Q15_UNSIGNED(FLOAT) + Q15_SIGN(FLOAT))
+#define FLOAT_Q15(FLOAT) (FLOAT_Q15_UNSIGNED(FLOAT) | Q15_SIGN(FLOAT))
 
 template <typename T = float>
 using mycomplex = array<T, 2>;
