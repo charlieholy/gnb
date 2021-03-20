@@ -1,0 +1,10 @@
+/proc/sys/kernel/core_pattern  core文件的格式与路径
+
+/proc/sys/kernel/core_pattern 指定core文件存储的位置，缺省值是core，表示将core文件存储到当前目录。这个pattern是可以定制的，模式如下：
+
+%p  出Core进程的PID
+%u  出Core进程的UID
+%s  造成Core的signal号
+%t  出Core的时间，从1970-01-0100:00:00开始的秒数
+%e  出Core进程对应的可执行文件名
+/proc/sys/kernel/core_uses_pid 取值是0或者1，表示是否在core文件名字后面加上进程号
