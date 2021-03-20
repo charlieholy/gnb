@@ -120,6 +120,27 @@ End of assembler dump.
 82              ct_idx = (ct_idx + 1) % ct_count;
 (gdb)
 ////////////////////////////////////////////////
+  .section .text
+
+.globl csetjmp, clongjmp
+
+csetjmp:
+    movq %rbp, 0(%rdi)
+    movq %rsp, 8(%rdi)
+    movq 0(%rsp), %rdx
+#    movq %rsp, %rdx
+    movq %rdx, 16(%rdi)
+    movq $0, %rax
+    retq
+
+clongjmp:
+    movq 0(%rdi), %rbp
+    movq 8(%rdi), %rsp
+    movq 16(%rdi), %rdx
+    movq %rdx, 0(%rsp)
+    movq $1, %rax
+    retq
+/////////////////
   #include <stdio.h>
 
 struct context {
@@ -146,3 +167,35 @@ begin...
 2...rbp 0x7ffe72f48e30 rsp 0x7ffe72f48e28 rip 0x4005c1
 3...rbp 0x7ffe72f48e30 rsp 0x7ffe72f48e28 rip 0x4005c1
 begin...
+//////////////////////////////////////
+  #include <iostream>
+using namespace std;
+
+struct context {
+        unsigned long rbp;
+        unsigned long rsp;
+        unsigned long rip;
+};
+
+struct context ctEntry = {0};
+
+//void csetjmp(unsigned long){};
+
+extern "C" void csetjmp(void*);
+int main()
+{
+  cout << "begin..." << endl;
+  csetjmp(&ctEntry);
+  cout << "reg rbp:" << hex << ctEntry.rbp << endl;
+  cout << "reg rsp:" << hex << ctEntry.rsp << endl;
+  cout << "reg rip:" << hex << ctEntry.rip << endl;
+  cout << "end..." << endl;
+
+}
+as -o setjmp.o setjmp.s
+g++ t.cpp setjmp.o
+  begin...
+reg rbp:7ffec1629260
+reg rsp:7ffec1629248
+reg rip:4008ac
+end...
