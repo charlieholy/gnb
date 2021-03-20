@@ -119,3 +119,30 @@ End of assembler dump.
 81              // 调度协程
 82              ct_idx = (ct_idx + 1) % ct_count;
 (gdb)
+////////////////////////////////////////////////
+  #include <stdio.h>
+
+struct context {
+        unsigned long rbp;
+        unsigned long rsp;
+        unsigned long rip;
+};
+
+struct context ctEntry = {0};
+
+int main()
+{
+  printf("begin...\n");
+  printf("1...rbp %p rsp %p rip %p\n",ctEntry.rbp,ctEntry.rsp,ctEntry.rip);
+  csetjmp(&ctEntry);
+  printf("2...rbp %p rsp %p rip %p\n",ctEntry.rbp,ctEntry.rsp,ctEntry.rip);
+  printf("3...rbp %p rsp %p rip %p\n",ctEntry.rbp,ctEntry.rsp,ctEntry.rip);
+  printf("begin...\n");
+
+}
+gcc t.c setjmp.o
+begin...
+1...rbp (nil) rsp (nil) rip (nil)
+2...rbp 0x7ffe72f48e30 rsp 0x7ffe72f48e28 rip 0x4005c1
+3...rbp 0x7ffe72f48e30 rsp 0x7ffe72f48e28 rip 0x4005c1
+begin...
