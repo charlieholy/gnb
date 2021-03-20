@@ -88,3 +88,34 @@ k7             0x0                 0
 %rbx，%rbp，%r12，%r13，%14，%15 用作数据存储，遵循被调用者使用规则，简单说就是随便用，调用子函数之前要备份它，以防他被修改
 %r10，%r11 用作数据存储，遵循调用者使用规则，简单说就是使用之前要先保存原值
   
+////////////////////////////////
+(gdb) disas
+Dump of assembler code for function csetjmp:
+=> 0x000000000040078e <+0>:     mov    %rbp,(%rdi)
+   0x0000000000400791 <+3>:     mov    %rsp,0x8(%rdi)
+   0x0000000000400795 <+7>:     mov    (%rsp),%rdx
+   0x0000000000400799 <+11>:    mov    %rdx,0x10(%rdi)
+   0x000000000040079d <+15>:    mov    $0x0,%rax
+   0x00000000004007a4 <+22>:    retq
+End of assembler dump.
+(gdb) bt
+#0  csetjmp () at setjmp.s:6
+#1  0x000000000040072c in main () at jmpcall.c:78
+(gdb) up 1
+#1  0x000000000040072c in main () at jmpcall.c:78
+78          int ret = csetjmp(&ctEntry);
+(gdb) bt
+#0  csetjmp () at setjmp.s:6
+#1  0x000000000040072c in main () at jmpcall.c:78
+(gdb) l
+73          ctArray[1].rsp = ctArray[1].rbp;
+74          ctArray[1].rip = (unsigned long)&fun2;
+75          *( (unsigned long*)(ctArray[1].rbp) ) = 0LL;
+76
+77          // 保存调度现场
+78          int ret = csetjmp(&ctEntry);
+79          if (ret == 1)
+80          {
+81              // 调度协程
+82              ct_idx = (ct_idx + 1) % ct_count;
+(gdb)
