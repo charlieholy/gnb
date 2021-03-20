@@ -145,7 +145,7 @@ int main()
     if (ret == 1)
     {
         // 调度协程
-        ct_idx = (ct_idx + 1) % ct_count;
+        ct_idx = (ct_idx + 1) % ct_count;  //任何数%1都是0  
         clongjmp( &ctArray[ct_idx] );
     }
 
