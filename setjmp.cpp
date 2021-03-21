@@ -128,7 +128,7 @@ int main()
 {
     // 创建协程1
     // 注意：这里创建了函数自己的堆栈区域
-    ctArray[0].rbp = (unsigned long)((char*)malloc(4096) + 4000);
+    ctArray[0].rbp = (unsigned long)((char*)malloc(4096) + 4000);  //Q 这里为啥要申请内存 A是为了给sp压栈腾空间 
     ctArray[0].rsp = ctArray[0].rbp;
     ctArray[0].rip = (unsigned long)&fun1;
     *( (unsigned long*)(ctArray[0].rbp) ) = 0LL;
