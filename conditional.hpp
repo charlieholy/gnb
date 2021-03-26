@@ -40,3 +40,17 @@ Possible output:
 int
 double
 double
+/////////////////////////
+#include <iostream>
+using namespace std;
+
+class A{};
+class B{};
+
+int main()
+{
+  cout << typeid(std::conditional<std::true_type::value,A,B>::type).name() << endl;
+
+  cout << "asd" << endl;
+  return 0;
+}
