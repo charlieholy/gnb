@@ -63,3 +63,6 @@ struct T {
     >
     T(Floating) : type(float_t) {} // OK
 };
+//////////////////////////////////
+ref    Function template overloading
+https://en.cppreference.com/w/cpp/language/function_template#Function_template_overloading
