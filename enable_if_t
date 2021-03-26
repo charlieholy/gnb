@@ -31,3 +31,35 @@ int main()
   cout <<  "asd" << endl;
   return 0;
 }
+
+///////////////////
+template<typename T>
+void fun(const typename std::enable_if_t<std::is_integral<T>::value, T>& val) {
+    std::cout << "fun<int>";
+}
+
+template<typename T>
+void fun(const typename std::enable_if_t<std::is_floating_point<T>::value, T>& val) {
+    std::cout << "fun<float>";
+}
+
+int main()
+{
+    fun(4);
+    fun(4.4);
+}
+////////////////////////////////
+/* RIGHT */
+ 
+struct T {
+    enum { int_t, float_t } type;
+    template <typename Integer,
+              std::enable_if_t<std::is_integral<Integer>::value, bool> = true               /// 模板的参数true = true????
+    >
+    T(Integer) : type(int_t) {}
+ 
+    template <typename Floating,
+              std::enable_if_t<std::is_floating_point<Floating>::value, bool> = true
+    >
+    T(Floating) : type(float_t) {} // OK
+};
