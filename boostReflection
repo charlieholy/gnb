@@ -325,5 +325,27 @@ namespace charlie::common::configuration
 REFLECTABLE_PARAMETERS_IMPL(JsonCharlieDescriptor, JSON_CHARLIE_DESCRIPTOR_PARAMS)
 } // namespace charlie::common::configuration
 
-g++ -E $1 -I./sdkuplane/prefix-root-list/asik-x86_64-ps_lfs-gcc9/toolchain/sysroots/core2-64-pc-linux-gnu/usr/include/
+g++ -I./sdkuplane/prefix-root-list/asik-x86_64-ps_lfs-dynamic-linker-on-gcc9/toolchain/sysroots/core2-64-pc-linux-gnu/usr/include -E 1.hpp
+
+
+namespace charlie::common::configuration
+{
+struct JsonCharlieDescriptor
+{
+    private: std::map<std::string , std::string> jsonRuns_{}; 
+	static std::function<const std::map<std::string , std::string> & (void*)> jsonRuns_getter; 
+	static std::function<std::map<std::string , std::string> & (void*)> jsonRuns_setter; 
+	static sct::common::configuration::reflection::core::MetaParameter<std::map<std::string , std::string> > jsonRuns_metaParameter; 
+	public: std::map<std::string , std::string> & jsonRuns() { return jsonRuns_; } 
+	const std::map<std::string , std::string> & jsonRuns() const { return jsonRuns_; }
+}
+
+namespace charlie::common::configuration
+{
+    std::function<const std::map<std::string , std::string> & (void*)> JsonCharlieDescriptor::jsonRuns_getter{[](void* pObject) -> const std::map<std::string , std::string> & { 
+        auto* pMetaObject = static_cast<JsonCharlieDescriptor*>(pObject); 
+        return pMetaObject->jsonRuns(); }}; 
+	std::function<std::map<std::string , std::string> & (void*)> JsonCharlieDescriptor::jsonRuns_setter{[](void* pObject) -> std::map<std::string , std::string> & { auto* pMetaObject = static_cast<JsonCharlieDescriptor*>(pObject); return pMetaObject->jsonRuns(); }}; 
+	sct::common::configuration::reflection::core::MetaParameter<std::map<std::string , std::string> > JsonCharlieDescriptor::jsonRuns_metaParameter{ "std::map<std::string , std::string>", "jsonRuns", jsonRuns_getter, jsonRuns_setter, ""};
+}
 
