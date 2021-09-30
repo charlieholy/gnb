@@ -45,3 +45,38 @@ cout << endl;
 
   return 0;
 }
+
+
+//////////////////
+
+#include <iostream>
+#include <sstream>
+#include <cstring>
+#include <algorithm>
+using namespace std;
+
+
+
+int main()
+{
+   std::ostringstream os;
+
+   float a = 0.3;
+   char buf[5] = {1,2,3,4,0};
+   //memcpy((char*)buf,(char*)&a,4);
+   std::copy_n(buf,4,(char*)&a);
+   cout << std::hex << buf << " " << endl;
+   return 0;
+}
+
+./a.out > 1.txt 
+ hexdump -c 1.txt
+  
+00000000  01 02 03 04 20 0a                                 |.... .|
+00000006
+
+
+
+
+
+
