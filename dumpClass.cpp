@@ -75,6 +75,54 @@ int main()
 00000000  01 02 03 04 20 0a                                 |.... .|
 00000006
 
+/////////////////////////////////////////////
+  
+  #include <iostream>
+#include <sstream>
+#include <cstring>
+#include <algorithm>
+#include <iomanip>
+using namespace std;
+int main()
+{
+   std::ostringstream os;
+
+   float img = 0.123;
+   float real = 0.456;
+   char buf[9]{0};
+
+   std::copy_n((char*)&img,4,buf);
+   std::copy_n((char*)&real,4,buf+4);
+   std::cout << std::hex << std::setfill('0');
+   for(int i=0;i<8;i++)
+   {
+     std::cout << setw(2) <<  +(static_cast<uint8_t>(buf[i]));
+   }
+   std::cout << std::endl;
+  return 0;
+}
+
+
+6de7fb3dd578e93e
+
+  
+  ///////////////////////////////////////////////////
+  
+import struct;
+value = 1.23456
+data = struct.pack('f',value)
+print(data)
+un = struct.unpack('f',data)
+print(un)
+
+###
+
+un2 = struct.unpack('ff', bytes.fromhex('6de7fb3dd578e93e'))
+print(un2)
+
+#b'\x10\x06\x9e?'
+#(1.2345600128173828,)
+#(0.12300000339746475, 0.4560000002384186)
 
 
 
