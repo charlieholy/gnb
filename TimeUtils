@@ -48,7 +48,7 @@ public:
 		time_t now = time(0);
 		tm  *ltm = localtime(&now);
  
-		char myDate[40],myTime[40], ims[10];
+		char myDate[40],myTime[40];
 		strftime(myDate, 40, "%Y-%m-%d", ltm);
 		strftime(myTime, 40, " %H:%M:%S", ltm);
 		
